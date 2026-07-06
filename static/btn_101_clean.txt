@@ -1,0 +1,952 @@
+Cabang Syariah Jakarta Pasar Minggu
+Cabang Syariah Makassar
+Cabang Syariah Medan
+Cabang Syariah Surabaya
+KC Aceh
+KC Ambon
+KC Balikpapan
+KC Bandung
+KC Bandung Asia Afrika
+KC Bandung Selatan
+KC Bandung Timur
+KC Banjarmasin
+KC Banyuwangi
+KC Bekasi
+KC Bekasi Barat
+KC Bekasi Timur
+KC Bogor
+KC Bogor Selatan
+KC Bogor Utara
+KC Cirebon
+KC Denpasar
+KC Depok
+KC Jakarta Barat
+KC Jakarta Jatinegara
+KC Jakarta Kebayoran Baru
+KC Jakarta Kota
+KC Jakarta Kuningan
+KC Jakarta Pusat
+KC Jakarta Selatan
+KC Jakarta Timur
+KC Jember
+KC Kediri
+KC Kupang
+KC Makassar
+KC Malang
+KC Manado
+KC Mataram
+KC Medan
+KC Padang
+KC Palembang
+KC Pekanbaru
+KC Pontianak
+KC Semarang
+KC Solo
+KC Surabaya
+KC Surakarta
+KC Yogyakarta
+KC Yogyakarta Syariah
+KCP Balikpapan
+KCP Banda Aceh
+KCP Bandung Cimahi
+KCP Bandung Dago
+KCP Banjarmasin
+KCP Bekasi Bintara
+KCP Bekasi Jatiasih
+KCP Cibubur
+KCP Cirebon Kasepuhan
+KCP Denpasar Selatan
+KCP Denpasar Utara
+KCP Depok Harapan Indah
+KCP Dewi Sartika
+KCP Gunung Putri
+KCP Jakarta Cempaka Putih
+KCP Jakarta Kebon Jeruk
+KCP Jakarta Tebet
+KCP Jember
+KCP Kediri
+KCP Kota Wisata Cibubur
+KCP Kupang
+KCP Makassar
+KCP Manado
+KCP Mataram
+KCP Medan Petisah
+KCP Medan Polonia
+KCP Padang
+KCP Palembang
+KCP Pondok Gede
+KCP Pondok Indah
+KCP Pondok Kelapa
+KCP Purwokerto
+KCP Rangkasbitung
+KCP Rawalumbu
+KCP Samarinda
+KCP Semarang Barat
+KCP Semarang Tengah
+KCP Solo Baru
+KCP Sukabumi Cikole
+KCP Sukabumi Warung Jambu
+KCP Syariah Bogor Warung Jambu
+KCP Syariah Ciputat
+KCP Tajur
+KCP Warung Jambu
+KCP Yogyakarta
+Kanwil Bandung
+Kanwil Jakarta 1
+Kanwil Jakarta 2
+Kanwil Makassar
+Kanwil Medan
+Kanwil Semarang
+Kanwil Surabaya
+Kanwil Yogyakarta
+Kanwil Banten
+Kanwil Jawa Timur
+Kanwil Jawa Tengah
+Kanwil Jawa Barat
+Kanwil Sumatera Utara
+Kanwil Sulawesi Selatan
+Cabang Syariah Yogyakarta
+Cabang Syariah Semarang
+Cabang Syariah Palembang
+Cabang Syariah Pekanbaru
+Cabang Syariah Aceh
+Cabang Syariah Bali
+KC Bandung Rancaekek
+KC Bandung Kopo
+KC Cimahi
+KC Tasikmalaya
+KC Ciamis
+KC Sukabumi Timur
+KC Cirebon Selatan
+KC Cirebon Utara
+KC Purwakarta
+KC Karawang Barat
+KC Karawang Timur
+KC Bekasi Jaya
+KC Bekasi Selatan
+KC Depok Sawangan
+KC Tangerang Selatan
+KC Tangerang Utara
+KC Serang
+KC Cilegon
+KC Bogor Tengah
+KC Bogor Timur
+KC Bogor Barat
+KC Semarang Utara
+KC Semarang Selatan
+KC Tegal
+KC Pekalongan
+KC Pati
+KC Kudus
+KC Surakarta Baru
+KC Salatiga
+KC Blitar
+KC Kediri Kota
+KC Madiun
+KC Banyuwangi Timur
+KC Jember Kota
+KC Probolinggo
+KC Pasuruan
+KC Sidoarjo Barat
+KC Gresik
+KC Malang Kota
+KC Batu
+KC Mojokerto
+KC Tulungagung
+KC Kediri Barat
+KC Magetan
+KCP Bandung Pasteur
+KCP Bandung Kebon Kawung
+KCP Cirebon Kanoman
+KCP Cirebon Kejaksan
+KCP Tegal Pekauman
+KCP Purwokerto Selatan
+KCP Purwokerto Utara
+KCP Purbalingga
+KCP Cilacap
+KCP Salatiga Tengah
+KCP Solo Ketelan
+KCP Solo Pasar Kliwon
+KCP Surakarta Manahan
+KCP Yogyakarta Kota
+KCP Yogyakarta Wirobrajan
+KCP Yogyakarta Kotagede
+KCP Yogyakarta Umbulharjo
+KCP Semarang Tawang
+KCP Semarang Banyumanik
+KCP Semarang Gayamsari
+KCP Semarang Candisari
+KCP Pekalongan Barat
+KCP Pekalongan Timur
+KCP Pemalang
+KCP Jepara
+KCP Demak
+KCP Kudus Kota
+KCP Pati Pasar
+KCP Pontianak Tengah
+KCP Singkawang
+KCP Banjarmasin Utara
+KCP Banjarmasin Selatan
+KCP Balikpapan Barat
+KCP Samarinda Ulu
+KCP Palembang Ilir
+KCP Palembang Timur
+KCP Palembang Barat
+KCP Bandar Lampung
+KCP Bengkulu
+KCP Jambi
+KCP Batam Center
+KCP Tanjung Pinang
+KCP Pekanbaru Rumbai
+KCP Medan Helvetia
+KCP Medan Amplas
+KCP Medan Sunggal
+KCP Padang Panjang
+KCP Padang Barat
+KCP Padang Timur
+KCP Padang Selatan
+KCP Aceh Besar
+KCP Banda Aceh Syariah
+KCP Mataram Tengah
+KCP Denpasar Barat
+KCP Kuta
+KCP Singaraja
+KCP Kupang Kota
+KCP Maumere
+KC Kupang Barat
+KC Kupang Timur
+KC Manokwari
+KC Jayapura
+KCP Sorong
+KCP Biak
+KC Palu Timur
+KC Kendari
+KC Gorontalo
+KCP Denpasar Timur
+KCP Gorontalo Kota
+KCP Makassar Panakkukang
+KCP Makassar Pettarani
+KCP Makassar Rappocini
+KCP Makassar Tidung
+KC Pontianak Selatan
+KC Pontianak Utara
+KCP Bengkayang
+KCP Sintang
+KC Palembang Selatan
+KC Palembang Pusri
+KCP Lampung Tengah
+KCP Metro
+KCP Serang Kota
+KCP Cilegon Timur
+KCP Tangerang Pinang
+KCP Bekasi Majalaya
+KCP Bekasi Pekayon
+KCP Depok Cimanggis
+KCP Depok Beji
+KC Jakarta Utara
+KC Jakarta Kepulauan Seribu
+KC Jakarta Ancol
+KCP Jakarta Tebet Timur
+KCP Jakarta Kalibata
+KCP Jakarta Manggarai
+KCP Jakarta Kramat Jati
+KCP Jakarta Pluit
+KCP Jakarta Kebayoran Lama
+KCP Jakarta Pasar Minggu Selatan
+KC Jakarta Pusat Barat
+KC Jakarta Selatan Timur
+KCP Jakarta Cempaka Putih Timur
+KC Surabaya Pusat
+KCP Surabaya Gubeng
+KCP Surabaya Kertajaya
+KCP Surabaya Wonokromo
+KCP Surabaya Tunjungan
+KCP Sidoarjo Porong
+KCP Sidoarjo Sukodono
+KCP Gresik Cerme
+KC Semarang Tengah
+KC Yogyakarta Barat
+KC Yogyakarta Selatan
+KC Solo Barat
+KC Solo Timur
+Cabang Syariah Banjarmasin
+Cabang Syariah Bandar Lampung
+Cabang Syariah Medan Helvetia
+Cabang Syariah Denpasar Selatan
+Kanwil Aceh
+Kanwil Sumatera Barat
+Kanwil Sumatera Selatan
+Kanwil Riau
+Kanwil Kepulauan Riau
+Kanwil Lampung
+Kanwil Kalimantan Barat
+Kanwil Kalimantan Timur
+Kanwil Kalimantan Utara
+Kanwil Bali
+Kanwil Nusa Tenggara Barat
+Kanwil Nusa Tenggara Timur
+Kanwil Maluku
+Kanwil Maluku Utara
+Kanwil Papua
+KC Banda Aceh
+KC Lhokseumawe
+KCP Sigli
+KCP Meulaboh
+KC Padang Panjang
+KC Bukittinggi
+KCP Payakumbuh
+KCP Solok
+KC Palembang Barat
+KC Lubuklinggau
+KCP Pagaralam
+KCP Prabumulih
+KC Bengkulu Kota
+KCP Manna
+KC Bandar Lampung Timur
+KCP Lampung Barat
+KC Pontianak Tengah
+KC Sintang
+KCP Ketapang
+KCP Singkawang Barat
+KC Samarinda Selatan
+KC Balikpapan Timur
+KCP Tenggarong
+KCP Bontang
+KC Palangkaraya
+KCP Sampit
+KC Banjarmasin Tengah
+KCP Barabai
+KC Banjarbaru
+KC Manado Selatan
+KCP Tomohon
+KCP Bitung
+KC Kendari Barat
+KCP Raha
+KCP Kolaka
+KC Ambon Selatan
+KCP Masohi
+KC Tual
+KC Saumlaki
+KC Jayapura Selatan
+KCP Nabire
+KCP Timika
+KC Ternate
+KCP Tidore
+KC Sofifi
+KCP Halmahera Barat
+KC Kupang Selatan
+KCP Waingapu
+KC Mataram Timur
+KCP Praya
+KC Sumbawa Besar
+KCP Bima
+KC Denpasar Timur
+KCP Gianyar
+KCP Singaraja Utara
+KC Surabaya Selatan
+KC Sidoarjo Timur
+KCP Mojokerto Barat
+KCP Pasuruan Kota
+KC Kediri Selatan
+KCP Jombang
+KCP Tulungagung Selatan
+KC Blitar Tengah
+KCP Ponorogo
+KCP Magetan
+KC Malang Selatan
+KCP Banyuwangi Barat
+KC Probolinggo Barat
+KC Gresik Timur
+KCP Lamongan
+KC Bojonegoro
+KCP Tuban
+KC Purworejo
+KC Kebumen
+KCP Wonosobo
+KCP Purwodadi
+KC Semarang Barat
+KCP Kendal
+KCP Demak Selatan
+KC Pati Barat
+KCP Rembang
+KC Kudus Selatan
+KC Tegal Timur
+KCP Brebes
+KC Cirebon Tengah
+KCP Kuningan
+KC Majalengka
+KCP Sumedang Selatan
+KC Tasikmalaya Utara
+KCP Garut Kota
+KC Cimahi Utara
+KCP Sukabumi Selatan
+KC Bogor Cibinong
+KCP Cibitung
+KC Tangerang Cikokol
+KCP Serpong
+KC Bekasi Timur Baru
+KCP Cikarang Pusat
+KC Depok Limo
+KC Jakarta Kebayoran Lama Utara
+KCP Jakarta Grogol
+KCP Jakarta Pluit Barat
+KC Jakarta Utara Timur
+KCP Jakarta Ancol Selatan
+KC Jakarta Rawamangun
+KC Jakarta Kalimalang
+KC Jakarta Cakung
+KCP Bandung Sukajadi
+KCP Cimahi Selatan
+KC Yogyakarta Timur
+KCP Sleman
+KC Solo Selatan
+KCP Klaten
+KC Purworejo Utara
+KC Wonogiri
+KC Boyolali
+KC Magelang
+KCP Temanggung
+KC Pekalongan Selatan
+KCP Batang
+KC Kebumen Timur
+KC Banyumas
+KCP Cilacap Utara
+KC Surakarta Pusat
+KCP Karanganyar
+KCP Sragen
+KC Kudus Timur
+KCP Pati Utara
+KC Jepara Barat
+KC Salatiga Timur
+KCP Blora
+KC Probolinggo Timur
+KCP Pasuruan Timur
+KC Banyuwangi Selatan
+KCP Jember Timur
+KC Situbondo
+KC Sumenep
+KCP Pamekasan
+KC Sampang
+KC Bangkalan Utara
+KCP Sidoarjo Selatan
+KC Gresik Barat
+KCP Lamongan Selatan
+KC Bojonegoro Utara
+KCP Tuban Timur
+KC Kediri Utara
+KCP Nganjuk
+KC Mojokerto Timur
+KC Pasuruan Barat
+KC Surabaya Utara
+KCP Gubeng Baru
+KC Wonokromo Timur
+KC Tambaksari
+KCP Kertajaya Utara
+KC Malang Barat
+KCP Kepanjen
+KC Batu Selatan
+KC Madiun Timur
+KCP Ngawi
+KC Ponorogo Barat
+KC Banyuwangi Timur
+KCP Banyuwangi Pusat
+KC Denpasar Barat Selatan
+Cabang Syariah Aceh Besar
+Cabang Syariah Palembang Selatan
+Cabang Syariah Pekanbaru Timur
+Cabang Syariah Pontianak
+Cabang Syariah Banjarmasin Barat
+Cabang Syariah Makassar Tengah
+Cabang Syariah Manado
+Cabang Syariah Jayapura
+Cabang Syariah Ambon Utara
+Cabang Syariah Kupang
+Kanwil Kalimantan Selatan
+Kanwil Kalimantan Tengah
+Kanwil Sulawesi Tenggara
+Kanwil Sulawesi Tengah
+Kanwil Sulawesi Barat
+Kanwil Gorontalo
+Kanwil Papua Barat
+KC Banjar
+KC Barito Kuala
+KC Banjarmasin Selatan
+KC Martapura
+KC Palangkaraya Barat
+KC Sukamara
+KC Sampit Selatan
+KC Kotawaringin Timur
+KC Pangkal Pinang
+KCP Pangkal Pinang Pusat
+KC Singkawang Selatan
+KC Sanggau
+KC Ketapang Timur
+KC Pontianak Barat
+KC Sambas
+KC Sintang Hulu
+KCP Ketapang Barat
+KCP Singkawang Timur
+KCP Putussibau
+KC Palopo
+KC Kendari Selatan
+KC Bau-Bau
+KC Kolaka Utara
+KC Raha Timur
+KCP Kendari Kota
+KCP Raha Barat
+KCP Bau-Bau Pusat
+KC Gorontalo Utara
+KCP Gorontalo Barat
+KCP Gorontalo Selatan
+KC Manado Tengah
+KC Bitung Barat
+KC Tomohon Timur
+KCP Manado Wanea
+KCP Bitung Aertembaga
+KCP Tomohon Utara
+KC Palu Barat
+KC Donggala
+KCP Sigi
+KCP Parigi Moutong
+KC Luwuk
+KCP Banggai
+KC Makassar Selatan
+KC Barru
+KC Pare-Pare
+KC Sidrap
+KCP Makassar Ujung Pandang
+KCP Pare-Pare Pusat
+KCP Barru Kota
+KCP Watampone
+KC Enrekang
+KC Bone
+KCP Bone Pusat
+KC Tana Toraja
+KCP Rantepao
+KC Toraja Utara
+KC Mamuju
+KC Polewali Mandar
+KCP Mamuju Tengah
+KCP Majene
+KC Palopo Selatan
+KC Kendari Utara
+KC Ambon Tengah
+KCP Ambon Pattimura
+KCP Ambon Waiheru
+KC Tual Barat
+KCP Tual Pusat
+KC Saumlaki Timur
+KCP Saumlaki Barat
+KC Jayapura Barat
+KC Merauke
+KC Nabire Timur
+KCP Jayapura Kota
+KCP Merauke Pusat
+KCP Timika Selatan
+KC Biak Numfor
+KCP Jayapura Abepura
+KCP Wamena
+KC Fakfak
+KCP Kaimana
+KC Serui
+KCP Sorong Selatan
+KC Manokwari Timur
+KCP Nabire Barat
+KC Jayapura Sentani
+KC Fakfak Utara
+KC Timika Utara
+KC Jayapura Timur
+KCP Fakfak Pusat
+KCP Serui Barat
+KC Kupang Tengah
+KC Ende
+KCP Ende Kota
+KC Maumere Barat
+KC Waingapu Timur
+KCP Sikka
+KCP Flores Timur
+KCP Larantuka
+KC Labuan Bajo
+KCP Ruteng
+KCP Bajawa
+KC Kota Kediri
+KC Kota Madiun
+KC Kota Magetan
+KC Ngawi Selatan
+KCP Kediri Kota Baru
+KCP Madiun Barat
+KCP Magetan Pusat
+KCP Ngawi Kota
+KC Surabaya Timur Selatan
+KCP Surabaya Rungkut
+KCP Surabaya Tenggilis
+KC Malang Tengah
+KCP Malang Klojen
+KCP Malang Lowokwaru
+KCP Malang Kedungkandang
+KC Jember Selatan
+KCP Jember Pusat
+KC Banyuwangi Barat Laut
+KCP Banyuwangi Kota
+KCP Situbondo Pusat
+KC Probolinggo Selatan
+KCP Probolinggo Pusat
+KC Pasuruan Selatan
+KCP Pasuruan Barat
+KC Sampang Timur
+KCP Pamekasan Tengah
+KCP Sumenep Barat
+KC Bangkalan Selatan
+KC Sumenep Utara
+KCP Sampang Pusat
+KC Mojokerto Selatan
+KCP Gresik Pusat
+KC Lamongan Barat
+KCP Bojonegoro Selatan
+KC Tuban Barat
+KCP Purwodadi Tengah
+KCP Kebumen Selatan
+KC Cilacap Timur
+KCP Banjarnegara
+KCP Wonogiri Selatan
+KC Blora Selatan
+KCP Grobogan
+KCP Rembang Timur
+KC Jepara Timur
+KCP Kudus Barat
+KC Pati Timur
+KCP Salatiga Barat
+KC Boyolali Timur
+KCP Klaten Tengah
+KC Sleman Timur
+KC Bantul
+KCP Kulon Progo
+KC Kulon Progo Selatan
+KCP Gunungkidul
+KC Yogyakarta Pusat
+KCP Yogyakarta Timur
+KC Solo Pusat
+KCP Sukoharjo
+KCP Karanganyar Utara
+KC Purworejo Barat
+KC Kebumen Utara
+KC Wonogiri Timur
+KCP Magelang Selatan
+KCP Temanggung Utara
+KC Boyolali Barat
+KCP Klaten Selatan
+KC Surakarta Timur
+Cabang Syariah Makassar Selatan
+Cabang Syariah Manokwari
+Cabang Syariah Jayapura Timur
+Cabang Syariah Ambon Tengah
+Cabang Syariah Kendari
+Cabang Syariah Palu
+Cabang Syariah Gorontalo
+Kanwil Kalimantan Selatan
+Kanwil Sulawesi Selatan
+Kanwil Sulawesi Utara
+Kanwil Nusa Tenggara Barat
+Kanwil Nusa Tenggara Timur
+Kanwil Maluku Utara
+KC Pangkalan Bun
+KCP Kuala Kapuas
+KCP Sampit Utara
+KC Palangka Raya Selatan
+KC Bontang Barat
+KCP Bontang Utara
+KC Tarakan
+KCP Tarakan Tengah
+KC Balikpapan Selatan
+KCP Balikpapan Utara
+KC Samarinda Utara
+KCP Samarinda Seberang
+KC Palopo Utara
+KCP Luwuk Tengah
+KC Kendari Tengah
+KCP Kolaka Selatan
+KC Bau-Bau Timur
+KCP Bau-Bau Barat
+KC Gorontalo Selatan
+KCP Gorontalo Timur
+KCP Manado Tuminting
+KCP Manado Wenang
+KC Ambon Utara
+KCP Ambon Desa Batu Merah
+KC Ternate Selatan
+KCP Tidore Utara
+KC Sofifi Timur
+KCP Halmahera Tengah
+KC Kupang Timur Laut
+KCP Ende Barat
+KC Maumere Timur
+KC Waingapu Barat
+KCP Sumba Barat
+KC Mataram Barat
+KCP Lombok Tengah
+KC Sumbawa Barat
+KCP Bima Timur
+KC Denpasar Barat Laut
+KCP Gianyar Timur
+KCP Singaraja Selatan
+KC Jember Timur
+KCP Lumajang
+KC Probolinggo Utara
+KC Blitar Selatan
+KCP Kediri Tenggara
+KC Surabaya Barat Laut
+KCP Gresik Selatan
+KC Pasuruan Utara
+KCP Mojokerto Selatan
+KCP Sidoarjo Pusat
+KC Jakarta Barat Puri
+KCP Jakarta Tambora
+KCP Jakarta Gajah Mada
+KC Bogor Selatan
+KCP Cibinong Timur
+KC Bekasi Utara
+KCP Bekasi Jatiwarna
+KC Tangerang Cipondoh
+KCP Serpong Utara
+KC Depok Pancoran Mas
+KCP Cimanggis Tengah
+KC Bandung Ujung Berung
+KCP Sumedang Tengah
+KC Cirebon Barat
+KCP Majalengka Selatan
+KC Tasikmalaya Selatan
+KCP Garut Selatan
+KC Sukabumi Barat
+KCP Bogor Ciawi
+KC Yogyakarta Utara
+KCP Sleman Barat
+KC Solo Utara
+KCP Wonogiri Barat
+KC Purworejo Timur
+KCP Kebumen Tengah
+KC Klaten Barat
+KCP Magelang Barat
+KC Salatiga Selatan
+KCP Boyolali Selatan
+KC Banyumas Timur
+KCP Cilacap Selatan
+KC Pekalongan Tengah
+KCP Tegal Selatan
+KC Pemalang Barat
+KC Jepara Utara
+KCP Demak Utara
+KC Kudus Tengah
+KCP Pati Barat
+KC Rembang Utara
+KC Blora Tengah
+KCP Grobogan Selatan
+KC Surakarta Barat
+KCP Sukoharjo Timur
+Cabang Syariah Banyuwangi
+Cabang Syariah Kediri
+Cabang Syariah Lamongan
+Cabang Syariah Madiun
+Cabang Syariah Purwokerto
+Kanwil Kalimantan Selatan
+Kanwil Sulawesi Tenggara
+Kanwil Sulawesi Tengah
+Kanwil Sulawesi Barat
+Kanwil Gorontalo
+Kanwil Papua Barat
+KC Barito Timur
+KC Barito Selatan
+KC Hulu Sungai Tengah
+KC Hulu Sungai Utara
+KCP Rantau
+KCP Kandangan
+KC Banjarmasin Utara
+KC Kotabaru
+KCP Tanah Bumbu
+KC Tanjung Selor
+KCP Bulungan
+KC Melawi
+KCP Putussibau Selatan
+KC Kapuas Hulu
+KCP Sanggau Kota
+KC Sintang Kota
+KC Sekadau
+KCP Ketapang Selatan
+KC Sambas Utara
+KC Kubu Raya
+KC Pangkalan Bun Selatan
+KCP Sampit Tengah
+KCP Palangka Raya Utara
+KC Sukamara Selatan
+KCP Palangkaraya Timur
+KC Bone Bolango
+KC Boalemo
+KCP Limboto
+KC Tomohon Barat
+KCP Minahasa
+KCP Kotamobagu
+KC Bolaang Mongondow
+KC Gorontalo Selatan
+KCP Gorontalo Tengah
+KC Bolmong Utara
+KC Sangihe
+KCP Siau
+KC Talaud
+KC Morowali
+KCP Poso
+KC Banggai Kepulauan
+KCP Donggala Utara
+KC Parigi Selatan
+KCP Tolitoli
+KC Luwu Timur
+KCP Palopo Barat
+KC Wajo
+KCP Soppeng
+KC Enrekang Selatan
+KC Pinrang
+KCP Sidrap Utara
+KC Gowa
+KCP Makassar Ranteboko
+KCP Makassar Ujung Pandang Timur
+KC Barru Selatan
+KCP Pare-Pare Barat
+KC Pangkajene
+KCP Jeneponto
+KC Sidenreng Rappang
+KC Selayar
+KCP Bulukumba
+KC Bantaeng
+KC Sinjai
+KC Bone Selatan
+KCP Sengkang
+KC Takalar
+KC Jeneponto Timur
+KC Bulukumba Utara
+KC Majene Selatan
+KCP Mamuju Utara
+KC Mamasa
+KCP Polewali Tengah
+KC Banggai Laut
+KC Banggai Selatan
+KC Sigi Selatan
+KCP Poso Pusat
+KC Keerom
+KC Yalimo
+KCP Yahukimo
+KC Puncak Jaya
+KCP Jayawijaya
+KC Merauke Selatan
+KCP Asmat
+KC Nabire Selatan
+KC Waropen
+KC Kaimana Selatan
+KC Fakfak Barat
+KCP Sorong Utara
+KC Manokwari Selatan
+KCP Raja Ampat
+KC Seram Bagian Timur
+KCP Ambon Barat
+KC Buru
+KCP Ternate Tengah
+KC Halmahera Selatan
+KC Tidore Selatan
+KCP Sofifi Barat
+KC Labuan Bajo Timur
+KCP Manggarai Barat
+KC Sumba Timur
+KCP Waingapu Barat
+KC Sumbawa Timur
+KCP Dompu
+KCP Bima Barat
+KC Lombok Timur
+KCP Lombok Utara
+KC Sumbawa Tengah
+KCP West Sumbawa
+KC Praya Barat
+KCP Mataram Selatan
+KC Singaraja Timur
+KCP Gianyar Selatan
+KC Denpasar Selatan
+KCP Badung Utara
+KC Klungkung
+KC Tabanan
+KC Bangli
+KCP Karangasem
+KC Jembrana
+KCP Buleleng
+KCP Semarapura
+KC Kupang Selatan Barat
+KCP Kefamenanu
+KC Waingapu Timur Laut
+KCP Ende Utara
+KC Maumere Selatan
+KC Flores Barat
+KCP Lembata
+KC Sumba Tengah
+KC Sumbawa Barat Laut
+KC Lombok Tengah Timur
+KCP Sumbawa Selatan
+KC Jakarta Pusat Timur
+KCP Jakarta Cideng
+KCP Jakarta Karet
+KCP Jakarta Guntur
+KC Jakarta Tebet Barat
+KC Jakarta Pasar Rebo
+KCP Jakarta Cawang
+KCP Jakarta Rawa Bunga
+KC Bekasi Selatan Timur
+KCP Bekasi Jati Asih
+KC Bogor Timur Laut
+KCP Cibinong Selatan
+KCP Bogor Cileungsi
+KC Tangerang Pusat
+KCP Tangerang Karawaci
+KC Serpong Utara Barat
+KCP BSD City
+KC Depok Cinere
+KCP Depok Sukmajaya
+KC Bandung Sukapura
+KCP Cimahi Tengah
+KC Sumedang Utara
+KCP Majalengka Barat
+KC Kuningan Barat
+KCP Cirebon Selatan Barat
+KC Tasikmalaya Tengah
+KCP Garut Timur
+KC Sukabumi Tengah
+KCP Bogor Kencana
+KC Yogyakarta Selatan Timur
+KCP Bantul Selatan
+KC Sleman Barat Daya
+KC Klaten Timur
+KCP Purworejo Selatan
+KC Wonogiri Utara
+KCP Magelang Timur
+KC Salatiga Utara
+KCP Boyolali Barat
+KCP Kebumen Barat
+KCP Pati Selatan
+KCP Kudus Timur
+KC Jepara Selatan
+KCP Grobogan Timur
+KCP Blora Selatan
+KCP Rembang Barat
+KCP Surakarta Selatan
+KC Purworejo Timur
+KCP Banyumas Barat
+KCP Cilacap Tengah
+KC Pekalongan Timur Laut
+KCP Tegal Barat
+KCP Pemalang Timur
+KC Brebes Selatan
+KCP Cirebon Utara
+KC Indramayu
+KCP Karawang Timur Selatan
+KC Sukabumi Utara
+Cabang Syariah Ambon Selatan
+Cabang Syariah Papua Barat
+Cabang Syariah Sulawesi Tengah
+Cabang Syariah Kalimantan Timur
+Cabang Syariah Kalimantan Barat
+
+
+
