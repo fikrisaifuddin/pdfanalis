@@ -3,11 +3,12 @@ import tempfile
 import logging
 from typing import List
 from datetime import datetime
+import json
 
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 
-from .utils import extract_slik_data, extract_name
+from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     result = None
     error = None
     message = None
+    problem_facilities_json = "[]"
 
     raw_exclude_banks = request.POST.get("excluded_banks", "") if request.method == "POST" else ""
     raw_exclude_branches = request.POST.get("excluded_branches", "") if request.method == "POST" else ""
@@ -82,6 +84,18 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             df = _pd.DataFrame(df) if not isinstance(df, _pd.DataFrame) else df
                             records = df.to_dict(orient="records")
 
+                        # ===== DEBUG 1 =====
+                        print(f"\n{'='*70}")
+                        print(f"DEBUG 1: KUALITAS EXTRACTION")
+                        print(f"{'='*70}")
+                        print(f"Total records: {len(records)}")
+                        for i, rec in enumerate(records):
+                            kualitas = rec.get('kualitas', 'TIDAK DITEMUKAN')
+                            bank = rec.get('bank', 'TIDAK DITEMUKAN')
+                            cabang = rec.get('cabang', 'TIDAK DITEMUKAN')
+                            print(f"  Record {i}: bank='{bank}' | cabang='{cabang}' | kualitas='{kualitas}'")
+                        print(f"{'='*70}\n")
+
                         rows = []
                         for rec in records:
                             monthly_payment = rec.get("monthly_payment", 0.0) or 0.0
@@ -102,6 +116,30 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                                 "page": rec.get("page", "N/A"),
                             })
 
+                        problem_facilities = [
+                            {
+                                "pelapor": rec.get("bank", "TIDAK DITEMUKAN"),
+                                "cabang": rec.get("cabang", "TIDAK DITEMUKAN"),
+                                "tanggal_update": rec.get("tanggal_update", "TIDAK DITEMUKAN"),
+                                "bulan_tahun": rec.get("bulan_tahun", "TIDAK DITEMUKAN"),  # <-- BARIS BARU
+                                "kualitas": rec.get("kualitas", "TIDAK DITEMUKAN"),
+                            }
+                            for rec in records
+                            if is_kualitas_bermasalah(rec.get("kualitas", ""))
+                        ]
+
+                        # ===== DEBUG 2 =====
+                        print(f"\n{'='*70}")
+                        print(f"DEBUG 2: PROBLEM FACILITIES FILTERING")
+                        print(f"{'='*70}")
+                        print(f"Total records: {len(records)}")
+                        print(f"Problem facilities (kualitas != '1-...'): {len(problem_facilities)}")
+                        for i, pf in enumerate(problem_facilities):
+                            print(f"  Problem {i}: {pf['pelapor']} / {pf['cabang']} => Kualitas: '{pf['kualitas']}'")
+                        print(f"{'='*70}\n")
+
+                        problem_facilities_json = json.dumps(problem_facilities, default=str)
+
                         first = records[0] if records else {}
                         nama_from_record = first.get("nama") or first.get("Nama")
                         final_name = nama_from_record if nama_from_record else nama_nasabah or "TIDAK DITEMUKAN"
@@ -111,6 +149,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             "total_monthly_payment": meta.get("total_monthly_payment", 0.0),
                             "nama": final_name,
                             "all_paid": False,
+                            "problem_facilities": problem_facilities
                         }
 
                     # Export CSV jika diminta
@@ -163,5 +202,18 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
         "message": message,
         "excluded_banks": raw_exclude_banks,
         "excluded_branches": raw_exclude_branches,
+        "problem_facilities_json": json.dumps(
+            result.get("problem_facilities", []), default=str
+        ),
     }
+
+    # ===== DEBUG 3 =====
+    print(f"\n{'='*70}")
+    print(f"DEBUG 3: CONTEXT JSON")
+    print(f"{'='*70}")
+    print(f"problem_facilities_json length: {len(context['problem_facilities_json'])}")
+    print(f"problem_facilities_json value:")
+    print(f"{context['problem_facilities_json']}")
+    print(f"{'='*70}\n")
+
     return render(request, "loancalc/loan_form.html", context)
