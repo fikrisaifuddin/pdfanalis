@@ -295,22 +295,28 @@ def extract_kualitas_number(kualitas_raw: str) -> str:
     return m.group(1) if m else ""
 def extract_kualitas_bulan_tahun(blocks_info: List[dict], kualitas_num: str) -> Tuple[Optional[str], Optional[str]]:
     """
-    Ekstrak histori Kualitas/Jumlah Hari Tunggakan dari grid bulan/tahun
-    
-    FIX VERSION: Menggunakan strategi area-based filtering
-    Alih-alih mencari pure numbers, cari blocks dalam grid area yang berisi numbers
+    Ekstrak histori Kualitas/Jumlah Hari Tunggakan dari grid bulan/tahun.
+
+    Strategi:
+    1. Temukan semua header bulan/tahun (mis. 'Agt 23', 'Jul 24')
+    2. Kelompokkan header per baris berdasarkan posisi vertikal (top)
+    3. Untuk tiap baris header, cari blok data DI BAWAH baris tersebut saja
+       (bukan overlap antar baris)
+    4. Tangani format blok gabungan '2 82' (kualitas + hari dalam 1 blok)
+    5. Pilih bulan paling kanan di baris paling akhir (paling baru) dengan kualitas != 1
     """
-    
     if not kualitas_num:
         logger.debug("extract_kualitas_bulan_tahun: kualitas_num is empty")
         return None, None
- 
+
     month_header_pattern = re.compile(
         r"^(Jan|Feb|Mar|Apr|Mei|Jun|Jul|Agt|Sep|Okt|Nov|Des)\s*'?\s*(\d{2})$",
         flags=re.IGNORECASE,
     )
- 
+
+    # --- 1. Temukan semua header bulan dan catat id-nya ---
     headers = []
+    header_block_ids: set = set()
     for b in blocks_info:
         m = month_header_pattern.match(b["text"].strip())
         if m:
@@ -319,79 +325,134 @@ def extract_kualitas_bulan_tahun(blocks_info: List[dict], kualitas_num: str) -> 
                 "top": b["top"],
                 "x0": b["x0"],
             })
- 
+            header_block_ids.add(id(b))
+
     if not headers:
         logger.debug("No month headers found")
         return None, None
- 
-    logger.debug(f"Found {len(headers)} month headers")
-    
-    min_header_top = min(h["top"] for h in headers)
-    max_header_top = max(h["top"] for h in headers)
-    min_header_x0 = min(h["x0"] for h in headers)
-    max_header_x0 = max(h["x0"] for h in headers)
-    
-    grid_top_min = min_header_top + 20  
-    grid_top_max = max_header_top + 80  
-    grid_x0_min = min_header_x0 - 20
-    grid_x0_max = max_header_x0 + 80
-    
-    logger.debug(f"Grid area: top=[{grid_top_min:.1f}, {grid_top_max:.1f}], x0=[{grid_x0_min:.1f}, {grid_x0_max:.1f}]")
-    
-    grid_blocks = [
-        b for b in blocks_info
-        if grid_top_min <= b["top"] <= grid_top_max
-        and grid_x0_min <= b["x0"] <= grid_x0_max
-        and re.search(r"\d", b["text"])  
-    ]
-    
-    logger.debug(f"Found {len(grid_blocks)} blocks in grid area containing digits")
-    for gb in grid_blocks:
-        logger.debug(f"  Grid block: '{gb['text']}' at x0={gb['x0']:.1f}, top={gb['top']:.1f}")
 
-    headers_sorted = sorted(headers, key=lambda h: h["x0"])
-    
+    logger.debug(f"Found {len(headers)} month headers")
+
+    # --- 2. Kelompokkan header per baris (y-position clustering, tol=5pt) ---
+    headers_by_top = sorted(headers, key=lambda h: h["top"])
+    header_rows: List[List[dict]] = []
+    current_row = [headers_by_top[0]]
+    for h in headers_by_top[1:]:
+        if abs(h["top"] - current_row[-1]["top"]) <= 5:
+            current_row.append(h)
+        else:
+            header_rows.append(current_row)
+            current_row = [h]
+    header_rows.append(current_row)
+
+    logger.debug(f"Header rows detected: {len(header_rows)}")
+    for ri, rh in enumerate(header_rows):
+        logger.debug(f"  Row {ri}: top={rh[0]['top']:.1f}, cols={[h['label'] for h in rh]}")
+
     matched_columns = []
-    
-    for i, header in enumerate(headers_sorted):
-        left_bound = header["x0"] - 20
-        right_bound = headers_sorted[i + 1]["x0"] - 20 if i + 1 < len(headers_sorted) else header["x0"] + 80
-        
-        col_blocks = [
-            b for b in grid_blocks
-            if left_bound <= b["x0"] < right_bound
+
+    # --- 3. Proses tiap baris header secara terpisah ---
+    for row_idx, row_headers in enumerate(header_rows):
+        row_top = sum(h["top"] for h in row_headers) / len(row_headers)
+
+        # Batas atas data: tepat di bawah baris header ini
+        data_top_min = row_top + 8
+
+        # Batas bawah data: tepat di atas baris header berikutnya, atau +50
+        if row_idx + 1 < len(header_rows):
+            next_row_top = min(h["top"] for h in header_rows[row_idx + 1])
+            data_top_max = next_row_top - 3
+        else:
+            data_top_max = row_top + 50
+
+        # Rentang x: dari kolom paling kiri - 25 sampai paling kanan + 80
+        row_x0_min = min(h["x0"] for h in row_headers) - 25
+        row_x0_max = max(h["x0"] for h in row_headers) + 80
+
+        # Ambil blok data di area ini:
+        # - BUKAN header bulan
+        # - Mengandung digit
+        # - Tidak mengandung huruf (menyaring "1 - Lancar", "Rp xxx", dll.)
+        row_data_blocks = [
+            b for b in blocks_info
+            if id(b) not in header_block_ids
+            and data_top_min <= b["top"] <= data_top_max
+            and row_x0_min <= b["x0"] <= row_x0_max
+            and re.search(r"\d", b["text"])
+            and not re.search(r"[A-Za-z]", b["text"])  # hanya angka / spasi / karakter non-huruf
         ]
-        
-        if len(col_blocks) >= 2:
-            # Sort by x0 lalu ambil 2 yang paling kiri (angka kualitas & hari)
-            col_blocks_sorted = sorted(col_blocks, key=lambda b: b["x0"])
-            
-            # Ekstrak angka pertama dari masing-masing block
-            kualitas_text = col_blocks_sorted[0]["text"].strip()
-            hari_text = col_blocks_sorted[1]["text"].strip()
-            
-            # Extract digits only
-            kualitas_val = re.search(r"\d+", kualitas_text)
-            hari_val = re.search(r"\d+", hari_text)
-            
-            if kualitas_val and hari_val:
-                kualitas_val = kualitas_val.group(0)
-                hari_val = hari_val.group(0)
-                
-                logger.debug(f"Column {header['label']}: kualitas='{kualitas_val}', hari='{hari_val}'")
-                
-                if kualitas_val == kualitas_num:
-                    matched_columns.append((header["x0"], header["label"], kualitas_val, hari_val))
-                    logger.debug(f"  ✓ MATCH!")
- 
+
+        logger.debug(f"Row {row_idx} data area: top=[{data_top_min:.1f},{data_top_max:.1f}], "
+                     f"blocks found={len(row_data_blocks)}")
+        for db in row_data_blocks:
+            logger.debug(f"  data block: '{db['text']}' x0={db['x0']:.1f} top={db['top']:.1f}")
+
+        row_headers_sorted = sorted(row_headers, key=lambda h: h["x0"])
+
+        for i, header in enumerate(row_headers_sorted):
+            left_bound = header["x0"] - 20
+            right_bound = (
+                row_headers_sorted[i + 1]["x0"] - 20
+                if i + 1 < len(row_headers_sorted)
+                else header["x0"] + 80
+            )
+
+            col_data = [
+                b for b in row_data_blocks
+                if left_bound <= b["x0"] < right_bound
+            ]
+
+            if not col_data:
+                continue
+
+            col_data_sorted = sorted(col_data, key=lambda b: b["x0"])
+
+            # Ekstrak kualitas_val dan hari_val
+            kualitas_val: Optional[str] = None
+            hari_val: Optional[str] = None
+
+            if len(col_data_sorted) == 1:
+                # Format gabungan: '1 0' atau '2 82'
+                parts = col_data_sorted[0]["text"].strip().split()
+                digits_only = [p for p in parts if re.match(r"^\d+$", p)]
+                if len(digits_only) >= 2:
+                    kualitas_val = digits_only[0]
+                    hari_val = digits_only[1]
+                elif len(digits_only) == 1:
+                    kualitas_val = digits_only[0]
+            else:
+                # Format terpisah: blok kiri = kualitas, blok kanan = hari
+                k_parts = col_data_sorted[0]["text"].strip().split()
+                h_parts = col_data_sorted[1]["text"].strip().split()
+                k_digits = [p for p in k_parts if re.match(r"^\d+$", p)]
+                h_digits = [p for p in h_parts if re.match(r"^\d+$", p)]
+                if k_digits:
+                    kualitas_val = k_digits[0]
+                if h_digits:
+                    hari_val = h_digits[0]
+
+            if not kualitas_val:
+                continue
+
+            logger.debug(f"Row {row_idx} Column {header['label']}: "
+                         f"kualitas='{kualitas_val}', hari='{hari_val}'")
+
+            # Match: kolom kiri SELAIN angka 1
+            if kualitas_val != "1" and hari_val is not None:
+                # sort_key: baris lebih akhir (row_idx besar) dan kolom lebih kanan (x0 besar)
+                sort_key = row_idx * 100000 + int(header["x0"])
+                matched_columns.append((sort_key, header["label"], kualitas_val, hari_val))
+                logger.debug(f"  ✓ MATCH! (kualitas={kualitas_val} != 1, hari={hari_val})")
+
     if not matched_columns:
-        logger.debug(f"No columns found with kualitas={kualitas_num}")
+        logger.debug("No columns found with kualitas selain 1")
         return None, None
- 
+
+    # Pilih bulan paling baru (baris terbesar + paling kanan dalam baris)
     best = max(matched_columns, key=lambda x: x[0])
     best_label, best_hari = best[1], best[3]
-    
-    logger.debug(f"Selected (rightmost): {best_label} - {best_hari} hari")
+
+    logger.debug(f"Selected (latest row, rightmost): {best_label} - {best_hari} hari")
     return best_label, best_hari
 
 def extract_kualitas_value(blocks_info: List[dict]) -> str:
