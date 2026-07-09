@@ -3,6 +3,28 @@
 
 {% block title %}Kalkulator Hutang Nasabah (SLIK OJK){% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Kustomisasi gaya visual tambahan tanpa merusak Bootstrap */
+  .stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+  .upload-zone {
+    border: 2px dashed #dee2e6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+  }
+  .table-modern th {
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -58,10 +80,13 @@ document.addEventListener("DOMContentLoaded", function () {
 {% endblock %}
 
 {% block content %}
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-primary text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <!-- FIX TOTAL: Menggunakan inline style kuat (!important) untuk memaksa background biru dan text putih -->
+  <div class="card-header p-4 d-flex flex-wrap justify-content-between align-items-center gap-3 rounded-top-4" 
+       style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; background-color: #0d6efd !important; color: #ffffff !important;">
     <div>
-      <h3 class="mb-0">Kalkulator Perhitungan Hutang Nasabah (SLIK OJK)</h3>
+      <h3 class="mb-1 fw-bold" style="color: #ffffff !important; margin: 0;">Kalkulator Perhitungan Hutang Nasabah</h3>
+      <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85) !important; margin: 0;">Integrasi data rekam jejak finansial berdasarkan dokumen SLIK OJK</p>
     </div>
     {% if result and result.rows %}
       <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
@@ -69,196 +94,229 @@ document.addEventListener("DOMContentLoaded", function () {
         <input type="hidden" name="export_csv" value="1" />
         <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
         <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
-        <button type="submit" class="btn btn-outline-light btn-sm" aria-label="Export hasil ke CSV">
+        <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
           Export CSV
         </button>
       </form>
     {% endif %}
   </div>
 
-  <div class="card-body">
+  <div class="card-body p-4">
     {% if error %}
-      <div class="alert alert-danger" role="alert">{{ error }}</div>
+      <div class="alert alert-danger border-0 shadow-sm rounded-3 d-flex align-items-center" role="alert">
+        <div class="fw-medium">{{ error }}</div>
+      </div>
     {% endif %}
 
+    <!-- Form Upload & Filter -->
     <form method="post" enctype="multipart/form-data" id="loan-form" class="mb-4" aria-label="Form unggah dan filter">
       {% csrf_token %}
-      <div class="row g-3 mb-3">
+      <div class="row g-3 mb-4">
         <div class="col-md-4">
-          <label for="pdf_file" class="form-label fw-bold">Upload PDF SLIK OJK</label>
-          <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" class="form-control" required aria-describedby="pdfHelp">
-          <div id="pdfHelp" class="form-text">
-            Unggah file SLIK OJK terbaru. Hanya dihitung jika <strong>Kondisi = Fasilitas Aktif</strong>. Hanya file <code>.pdf</code> diterima.
+          <div class="upload-zone h-100 d-flex flex-column justify-content-center">
+            <label for="pdf_file" class="form-label fw-bold text-secondary mb-2">Upload PDF SLIK OJK</label>
+            <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" class="form-control form-control-sm" required aria-describedby="pdfHelp">
+            <div id="pdfHelp" class="form-text mt-2 small text-muted">
+              Hanya hitung <strong>Kondisi = Fasilitas Aktif</strong>. Format file wajib <code>.pdf</code>.
+            </div>
           </div>
         </div>
         <div class="col-md-4">
-          <label for="excluded_banks" class="form-label fw-bold">
-            Bank yang Dikecualikan <small class="text-muted">(pisahkan koma)</small>
-          </label>
-          <input type="text" name="excluded_banks" id="excluded_banks"
-                 value="{{ excluded_banks|default:'' }}"
-                 placeholder="Contoh: BRI, Mandiri"
-                 class="form-control"
-                 aria-label="Bank yang dikecualikan" />
+          <div class="p-3 border rounded-3 h-100 bg-light-subtle">
+            <label for="excluded_banks" class="form-label fw-bold text-secondary">
+              Bank yang Dikecualikan
+            </label>
+            <input type="text" name="excluded_banks" id="excluded_banks"
+                   value="{{ excluded_banks|default:'' }}"
+                   placeholder="Contoh: BRI, Mandiri"
+                   class="form-control"
+                   aria-label="Bank yang dikecualikan" />
+            <div class="form-text small text-muted">Pisahkan dengan koma jika lebih dari satu.</div>
+          </div>
         </div>
         <div class="col-md-4">
-          <label for="excluded_branches" class="form-label fw-bold">
-            Cabang yang Dikecualikan <small class="text-muted">(pisahkan koma)</small>
-          </label>
-          <input type="text" name="excluded_branches" id="excluded_branches"
-                 value="{{ excluded_branches|default:'' }}"
-                 placeholder="Contoh: KPO, Jakarta Selatan"
-                 class="form-control"
-                 aria-label="Cabang yang dikecualikan" />
+          <div class="p-3 border rounded-3 h-100 bg-light-subtle">
+            <label for="excluded_branches" class="form-label fw-bold text-secondary">
+              Cabang yang Dikecualikan
+            </label>
+            <input type="text" name="excluded_branches" id="excluded_branches"
+                   value="{{ excluded_branches|default:'' }}"
+                   placeholder="Contoh: KPO, Jakarta Selatan"
+                   class="form-control"
+                   aria-label="Cabang yang dikecualikan" />
+            <div class="form-text small text-muted">Pisahkan dengan koma jika lebih dari satu.</div>
+          </div>
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 d-flex justify-content-center align-items-center" id="submit-btn">
+      <button type="submit" class="btn btn-primary btn-lg w-100 d-flex justify-content-center align-items-center py-2 fw-semibold shadow-sm" id="submit-btn">
         <span id="btn-text">Proses &amp; Hitung Total Hutang Nasabah</span>
         <span id="spinner" class="spinner-border spinner-border-sm ms-2 d-none" aria-hidden="true"></span>
       </button>
     </form>
 
     {% if result %}
-      <div class="mb-3">
-        <div class="alert 
-          {% if result.nama and result.nama != 'TIDAK DITEMUKAN' %}
-            alert-info
-          {% else %}
-            alert-warning
-          {% endif %} fw-bold mb-2" role="status">
-          Nama Nasabah: {{ result.nama }}{% if result.nama == "TIDAK DITEMUKAN" %} <small>(tidak terdeteksi otomatis, silakan verifikasi manual)</small>{% endif %}
+      <hr class="my-4 text-muted opacity-25">
+      
+      <!-- Penataan Baru Ringkasan Informasi Finansial (Stat Cards) -->
+      <div class="row g-3 mb-4">
+        <!-- Card Nama Nasabah -->
+        <div class="col-md-4">
+          <div class="card h-100 border-0 shadow-sm stat-card {% if result.nama and result.nama != 'TIDAK DITEMUKAN' %}bg-info-subtle text-info-dark{% else %}bg-warning-subtle text-warning-dark{% endif %} p-3 rounded-3">
+            <div class="small fw-semibold text-uppercase opacity-75 mb-1">Nama Nasabah</div>
+            <div class="fs-5 fw-bold text-truncate">
+              {{ result.nama }}
+            </div>
+            {% if result.nama == "TIDAK DITEMUKAN" %}
+              <div class="small mt-1 text-muted fw-normal" style="font-size: 0.75rem;">Tidak terdeteksi otomatis, silakan verifikasi manual.</div>
+            {% endif %}
+          </div>
         </div>
 
-        {% if result.all_paid %}
-          <div class="badge bg-success mb-2">Semua fasilitas sudah lunas / tidak ada fasilitas aktif</div>
-        {% else %}
-          <div class="d-flex flex-wrap gap-2 mb-2">
-            <div class="badge bg-secondary">
-              <strong>Jumlah Fasilitas Aktif:</strong> {{ result.rows|length }}
+        {% if not result.all_paid %}
+          <!-- Card Jumlah Fasilitas -->
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm stat-card bg-secondary-subtle text-secondary-dark p-3 rounded-3">
+              <div class="small fw-semibold text-uppercase opacity-75 mb-1">Jumlah Fasilitas Aktif</div>
+              <div class="fs-3 fw-bold">
+                {{ result.rows|length }} <span class="fs-6 fw-normal text-muted">Fasilitas</span>
+              </div>
             </div>
-            <div class="badge bg-success">
-              <strong>Total Monthly Payment:</strong>
-              {% if result.total_monthly_payment %}
-                {{ result.total_monthly_payment|floatformat:2|intcomma }}
-              {% else %}
-                0
-              {% endif %}
+          </div>
+          <!-- Card Total Monthly Payment -->
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm stat-card bg-success-subtle text-success-dark p-3 rounded-3">
+              <div class="small fw-semibold text-uppercase opacity-75 mb-1">Total Monthly Payment</div>
+              <div class="fs-3 fw-bold text-success">
+                <span class="fs-6 fw-semibold text-muted">Rp</span>
+                {% if result.total_monthly_payment %}
+                  {{ result.total_monthly_payment|floatformat:2|intcomma }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- Card Lunas Semua -->
+          <div class="col-md-8">
+            <div class="card h-100 border-0 shadow-sm stat-card bg-success text-white p-3 rounded-3 d-flex justify-content-center align-items-start">
+              <div class="fs-5 fw-bold">Semua fasilitas sudah lunas / tidak ada fasilitas aktif</div>
             </div>
           </div>
         {% endif %}
       </div>
 
       {% if result.all_paid %}
-        <div class="alert alert-success mb-4" role="alert">
+        <div class="alert alert-success border-0 shadow-sm p-3 mb-4 rounded-3 text-center fw-medium" role="alert">
           {{ message|default:"Semua fasilitas sudah lunas atau tidak ada fasilitas aktif yang valid." }}
         </div>
       {% else %}
         {% if result.rows %}
           {% if message %}
-            <div class="alert alert-warning mb-3" role="alert">
+            <div class="alert alert-warning border-0 shadow-sm p-3 mb-4 rounded-3 fw-medium" role="alert">
               {{ message }}
             </div>
           {% endif %}
 
-          <!-- Desktop table -->
-          <div class="d-none d-md-block table-responsive">
-            <table class="table table-bordered table-hover table-sm text-center align-middle" aria-label="Tabel hasil perhitungan hutang nasabah">
+          <!-- Desktop table (Modern Styling) -->
+          <div class="d-none d-md-block table-responsive rounded-3 border">
+            <table class="table table-hover table-striped-columns align-middle mb-0 table-modern text-center" aria-label="Tabel hasil perhitungan hutang nasabah">
               <caption class="visually-hidden">Rincian fasilitas aktif nasabah dan total pembayaran bulanan</caption>
-              <thead class="table-primary">
+              <thead class="table-light border-bottom text-uppercase fw-bold text-secondary">
                 <tr>
-                  <th scope="col">No.</th>
-                  <th scope="col">Bank</th>
-                  <th scope="col">Cabang</th>
-                  <th scope="col">Loan Amount</th>
-                  <th scope="col">Interest Rate (%)</th>
-                  <th scope="col">Loan Term (bulan)</th>
-                  <th scope="col">Start Date</th>
-                  <th scope="col">End Date</th>
-                  <th scope="col">Monthly Payment</th>
-                  <th scope="col">Total Payment</th>
-                  <th scope="col">Total Interest</th>
-                  <th scope="col">Annual Payment</th>
-                  <th scope="col">Mortgage Constant</th>
-                  <th scope="col">Page</th>
+                  <th scope="col" class="py-3">No.</th>
+                  <th scope="col" class="py-3 text-start">Bank</th>
+                  <th scope="col" class="py-3 text-start">Cabang</th>
+                  <th scope="col" class="py-3">Loan Amount</th>
+                  <th scope="col" class="py-3">Interest Rate</th>
+                  <th scope="col" class="py-3">Term <small class="text-muted">(bln)</small></th>
+                  <th scope="col" class="py-3">Start Date</th>
+                  <th scope="col" class="py-3">End Date</th>
+                  <th scope="col" class="py-3">Monthly</th>
+                  <th scope="col" class="py-3">Total Pay</th>
+                  <th scope="col" class="py-3">Total Int.</th>
+                  <th scope="col" class="py-3">Annual</th>
+                  <th scope="col" class="py-3">Mortgage Cst.</th>
+                  <th scope="col" class="py-3">Page</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="table-group-divider">
                 {% for row in result.rows %}
                   <tr>
-                    <td>{{ row.no }}</td>
-                    <td class="text-start">{{ row.bank }}</td>
-                    <td class="text-start">{{ row.cabang }}</td>
-                    <td>
+                    <td class="fw-medium text-muted">{{ row.no }}</td>
+                    <td class="text-start fw-semibold text-dark">{{ row.bank }}</td>
+                    <td class="text-start text-muted small">{{ row.cabang }}</td>
+                    <td class="fw-medium">
                       {% if row.loan_amount and row.loan_amount > 0 %}
                         {{ row.loan_amount|floatformat:0|intcomma }}
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.interest_rate and row.interest_rate > 0 %}
-                        {{ row.interest_rate|floatformat:2 }}
+                        <span class="badge bg-light text-dark border fw-normal px-2">{{ row.interest_rate|floatformat:2 }}%</span>
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
-                    <td>{% if row.loan_term_months %}{{ row.loan_term_months }}{% else %}-{% endif %}</td>
-                    <td>
+                    <td>{% if row.loan_term_months %}{{ row.loan_term_months }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                    <td class="small text-muted">
                       {% if row.start_date %}
                         {{ row.start_date|date:"d-m-Y" }}
                       {% else %}
                         -
                       {% endif %}
                     </td>
-                    <td>
+                    <td class="small text-muted">
                       {% if row.end_date %}
                         {{ row.end_date|date:"d-m-Y" }}
                       {% else %}
                         -
                       {% endif %}
                     </td>
-                    <td>
+                    <td class="fw-semibold text-primary">
                       {% if row.monthly_payment and row.monthly_payment > 0 %}
                         {{ row.monthly_payment|floatformat:2|intcomma }}
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.total_payment and row.total_payment > 0 %}
                         {{ row.total_payment|floatformat:2|intcomma }}
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.total_interest is not None and row.total_interest >= 0 %}
                         {{ row.total_interest|floatformat:2|intcomma }}
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.annual_payment and row.annual_payment > 0 %}
                         {{ row.annual_payment|floatformat:2|intcomma }}
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.mortgage_constant is not None %}
                         {{ row.mortgage_constant|floatformat:2 }}%
                       {% else %}
-                        -
+                        <span class="text-muted">-</span>
                       {% endif %}
                     </td>
-                    <td>{{ row.page }}</td>
+                    <td><span class="badge bg-secondary-subtle text-secondary-dark rounded-pill px-2">Hal {{ row.page }}</span></td>
                   </tr>
                 {% endfor %}
-                <tr class="fw-bold table-secondary">
-                  <td colspan="8" class="text-end">Total Monthly Payment</td>
-                  <td>
+                <tr class="fw-bold table-light border-top">
+                  <td colspan="8" class="text-end py-3 text-secondary text-uppercase fs-6">Total Monthly Payment:</td>
+                  <td class="py-3 fs-6 text-primary">
                     {% if result.total_monthly_payment %}
                       {{ result.total_monthly_payment|floatformat:2|intcomma }}
                     {% else %}
@@ -271,37 +329,40 @@ document.addEventListener("DOMContentLoaded", function () {
             </table>
           </div>
 
-          <!-- Mobile accordion fallback -->
+          <!-- Mobile accordion fallback (Cleaner & Modern Layout) -->
           <div class="d-block d-md-none">
-            <div class="accordion" id="facilitiesAccordion">
+            <div class="accordion shadow-sm rounded-3 overflow-hidden border" id="facilitiesAccordion">
               {% for row in result.rows %}
-                <div class="accordion-item">
+                <div class="accordion-item border-0 border-bottom">
                   <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-                      Fasilitas #{{ row.no }} — {{ row.bank }} / {{ row.cabang }}
+                    <button class="accordion-button collapsed py-3 fw-semibold text-dark bg-light-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                      <span class="text-primary me-2">#{{ row.no }}</span> {{ row.bank }} <span class="mx-1 text-muted">/</span> <small class="text-muted fw-normal">{{ row.cabang }}</small>
                     </button>
                   </h2>
                   <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#facilitiesAccordion">
-                    <div class="accordion-body">
-                      <ul class="list-unstyled mb-0">
-                        <li><strong>Loan Amount:</strong> {% if row.loan_amount and row.loan_amount > 0 %}{{ row.loan_amount|floatformat:0|intcomma }}{% else %}-{% endif %}</li>
-                        <li><strong>Interest Rate (%):</strong> {% if row.interest_rate and row.interest_rate > 0 %}{{ row.interest_rate|floatformat:2 }}{% else %}-{% endif %}</li>
-                        <li><strong>Loan Term (bulan):</strong> {{ row.loan_term_months|default:"-" }}</li>
-                        <li><strong>Start Date:</strong> {% if row.start_date %}{{ row.start_date|date:"d-m-Y" }}{% else %}-{% endif %}</li>
-                        <li><strong>End Date:</strong> {% if row.end_date %}{{ row.end_date|date:"d-m-Y" }}{% else %}-{% endif %}</li>
-                        <li><strong>Monthly Payment:</strong> {% if row.monthly_payment and row.monthly_payment > 0 %}{{ row.monthly_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</li>
-                        <li><strong>Total Payment:</strong> {% if row.total_payment and row.total_payment > 0 %}{{ row.total_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</li>
-                        <li><strong>Total Interest:</strong> {% if row.total_interest is not None and row.total_interest >= 0 %}{{ row.total_interest|floatformat:2|intcomma }}{% else %}-{% endif %}</li>
-                        <li><strong>Annual Payment:</strong> {% if row.annual_payment and row.annual_payment > 0 %}{{ row.annual_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</li>
-                        <li><strong>Mortgage Constant:</strong> {% if row.mortgage_constant is not None %}{{ row.mortgage_constant|floatformat:2 }}%{% else %}-{% endif %}</li>
-                        <li><strong>Page:</strong> {{ row.page }}</li>
-                      </ul>
+                    <div class="accordion-body bg-white">
+                      <table class="table table-sm table-borderless mb-0 small">
+                        <tbody>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Loan Amount:</td><td class="text-end fw-bold">{% if row.loan_amount and row.loan_amount > 0 %}{{ row.loan_amount|floatformat:0|intcomma }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Interest Rate (%):</td><td class="text-end font-monospace">{% if row.interest_rate and row.interest_rate > 0 %}{{ row.interest_rate|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Loan Term (bulan):</td><td class="text-end">{{ row.loan_term_months|default:"-" }}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Start Date:</td><td class="text-end text-muted">{% if row.start_date %}{{ row.start_date|date:"d-m-Y" }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">End Date:</td><td class="text-end text-muted">{% if row.end_date %}{{ row.end_date|date:"d-m-Y" }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle text-primary"><td class="fw-bold py-1">Monthly Payment:</td><td class="text-end fw-bold">{% if row.monthly_payment and row.monthly_payment > 0 %}{{ row.monthly_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Total Payment:</td><td class="text-end">{% if row.total_payment and row.total_payment > 0 %}{{ row.total_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Total Interest:</td><td class="text-end">{% if row.total_interest is not None and row.total_interest >= 0 %}{{ row.total_interest|floatformat:2|intcomma }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Annual Payment:</td><td class="text-end">{% if row.annual_payment and row.annual_payment > 0 %}{{ row.annual_payment|floatformat:2|intcomma }}{% else %}-{% endif %}</td></tr>
+                          <tr class="border-bottom-subtle"><td class="text-muted fw-medium py-1">Mortgage Constant:</td><td class="text-end">{% if row.mortgage_constant is not None %}{{ row.mortgage_constant|floatformat:2 }}%{% else %}-{% endif %}</td></tr>
+                          <tr><td class="text-muted fw-medium py-1">Page:</td><td class="text-end"><span class="badge bg-light text-dark border">{{ row.page }}</span></td></tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
               {% endfor %}
-              <div class="mt-2 fw-bold">
-                Total Monthly Payment: {% if result.total_monthly_payment %}{{ result.total_monthly_payment|floatformat:2|intcomma }}{% else %}0{% endif %}
+              <div class="p-3 bg-light border-top fw-bold d-flex justify-content-between align-items-center fs-6">
+                <span class="text-secondary text-uppercase small">Total Monthly Payment:</span>
+                <span class="text-primary">{% if result.total_monthly_payment %}{{ result.total_monthly_payment|floatformat:2|intcomma }}{% else %}0{% endif %}</span>
               </div>
             </div>
           </div>
@@ -309,22 +370,22 @@ document.addEventListener("DOMContentLoaded", function () {
           <!-- indikasi ekstraksi gagal per baris -->
           {% for row in result.rows %}
             {% if row.loan_amount|default:0 == 0 and row.interest_rate|default:0 == 0 %}
-              <div class="alert alert-warning small mt-2" role="alert">
-                Detail pinjaman untuk baris {{ row.no }} (halaman {{ row.page }}) kemungkinan gagal diekstrak; silakan periksa sumber PDF atau lihat log server untuk detail.
+              <div class="alert alert-warning border-0 shadow-sm small mt-3 rounded-3" role="alert">
+                Detail pinjaman untuk baris <strong>{{ row.no }}</strong> (halaman {{ row.page }}) kemungkinan gagal diekstrak; silakan periksa sumber PDF atau lihat log server untuk detail.
               </div>
             {% endif %}
           {% endfor %}
         {% else %}
-          <div class="alert alert-warning" role="alert">
+          <div class="alert alert-warning border-0 shadow-sm rounded-3 mt-3" role="alert">
             Tidak ada fasilitas aktif yang valid setelah pemrosesan. Pastikan PDF yang diunggah memiliki <strong>Kondisi = Fasilitas Aktif</strong> dan bukan hanya fasilitas berstatus Lunas.
           </div>
         {% endif %}
       {% endif %}
 
       {% if request.GET.debug|default:"" == "1" %}
-        <div class="mt-4">
-          <h5>Debug: hasil mentah</h5>
-          <pre style="background:#f8f9fa; padding:10px; overflow:auto;">{{ result|safe }}</pre>
+        <div class="mt-4 border rounded-3 p-3 bg-light">
+          <h5 class="fw-bold text-secondary mb-2">Debug: hasil mentah</h5>
+          <pre class="mb-0 small" style="max-height: 250px; overflow:auto; background:#ffffff; padding:12px; border-radius: 6px; border: 1px solid #e3e6f0;">{{ result|safe }}</pre>
         </div>
       {% endif %}
     {% endif %}
