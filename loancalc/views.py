@@ -24,14 +24,10 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     excluded_banks: List[str] = [b.strip() for b in raw_exclude_banks.split(",") if b.strip()]
     excluded_branches: List[str] = [c.strip() for c in raw_exclude_branches.split(",") if c.strip()]
 
-    # Default for GET
-    if request.method != "POST":
-        result = {
-            "rows": [],
-            "total_monthly_payment": 0.0,
-            "nama": "TIDAK DITEMUKAN",
-            "all_paid": True,
-        }
+    # (Dihapus) Default for GET -- dulu di sini result diisi dummy "all_paid": True
+    # sehingga kartu "Semua fasilitas lunas" muncul walau belum ada file diupload.
+    # Sekarang result dibiarkan None saat GET awal, supaya blok hasil di template
+    # ({% if result %}) tidak dirender sama sekali sebelum ada proses.
 
     if request.method == "POST":
         pdf_file = request.FILES.get("pdf_file")
@@ -61,7 +57,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                     # tidak ada teks sama sekali (misal: scan tanpa OCR)
                     if not meta.get("has_text", True):
                         message = "PDF tampaknya tidak berisi teks yang bisa diekstraksi (mungkin hasil scan tanpa OCR). Silakan cek ulang atau jalankan OCR terlebih dahulu."
-                    
+
                     if df is None or (hasattr(df, "empty") and df.empty) or meta.get("facility_count", 0) == 0:
                         # semua lunas / tidak ada fasilitas aktif valid
                         message = message or (
@@ -187,14 +183,9 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         except Exception:
                             logger.warning("Gagal menghapus file temporer: %s", tmp_path)
 
-    # Pastikan result tidak None
-    if result is None:
-        result = {
-            "rows": [],
-            "total_monthly_payment": 0.0,
-            "nama": "TIDAK DITEMUKAN",
-            "all_paid": True,
-        }
+    # (Dihapus) blok "Pastikan result tidak None" -- dulu di sini result dipaksa
+    # selalu terisi walau None, sehingga GET awal ikut menampilkan kartu hasil.
+    # Sekarang result dibiarkan None kalau memang belum diproses.
 
     context = {
         "result": result,
@@ -203,7 +194,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
         "excluded_banks": raw_exclude_banks,
         "excluded_branches": raw_exclude_branches,
         "problem_facilities_json": json.dumps(
-            result.get("problem_facilities", []), default=str
+            result.get("problem_facilities", []) if result else [], default=str
         ),
     }
 

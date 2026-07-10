@@ -22,6 +22,171 @@
     letter-spacing: 0.5px;
     font-size: 0.85rem;
   }
+
+  /* Cegah sudut/edge row (margin negatif Bootstrap) bocor keluar dari card pembungkus */
+  .card.border-0.shadow-sm.rounded-4 {
+    overflow: hidden;
+  }
+
+  /* Filter Bank/Cabang: teks hint & placeholder dibikin kecil & redup, biar gak rame */
+  .hint-muted {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.3rem;
+  }
+  #excluded_banks::placeholder,
+  #excluded_branches::placeholder {
+    color: #b8bfc7;
+    font-size: 0.85rem;
+  }
+  .hint-muted strong {
+    color: #868e96;
+    font-weight: 600;
+  }
+  .hint-muted code {
+    color: #9ca3af;
+    background-color: transparent;
+    font-weight: 600;
+  }
+  /* Samakan tinggi & perataan 2 card filter Bank/Cabang */
+  #collapseFilters .row {
+    align-items: stretch;
+  }
+  #collapseFilters .p-3.border.rounded-3 {
+    height: 100%;
+  }
+
+  /* Stat card elegan: monokrom abu-abu, tanpa warna-warni, ikon polos tanpa background */
+  .stat-card-elegant {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-left: 5px solid #ced4da;
+    border-radius: 0.6rem;
+    padding: 0.9rem 1.1rem !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .stat-card-elegant .stat-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #adb5bd;
+    font-size: 1.6rem;
+  }
+  .stat-card-elegant .stat-body {
+    min-width: 0;
+  }
+  .stat-card-elegant .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #868e96;
+    margin-bottom: 0.15rem !important;
+  }
+  .stat-card-elegant .stat-value {
+    color: #343a40;
+    font-weight: 600;
+    font-size: 1.15rem !important;
+    line-height: 1.3;
+  }
+  .stat-card-elegant .stat-value.text-money { color: #343a40; font-size: 1.25rem !important; }
+
+  /* Tabel hasil: rapikan lebar kolom, cegah teks kepotong/wrap berantakan */
+  .table-modern {
+    min-width: 1300px;
+  }
+  .table-modern th,
+  .table-modern td {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .table-modern td.text-start {
+    white-space: normal;
+    max-width: none;
+  }
+  /* Header tabel: pembatas bawah tipis & lembut, tidak mencolok */
+  .table-modern thead.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+  .table-modern thead th {
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+  /* Garis pembatas antara header & baris data: Bootstrap table-group-divider defaultnya
+     tebal & gelap (currentColor). Ganti jadi tipis + shadow lembut agar tidak mencolok. */
+  .table-modern tbody.table-group-divider {
+    border-top: none !important;
+    box-shadow: inset 0 1px 0 #dee2e6;
+  }
+  /* Pembatas vertikal HANYA setelah kolom No & Bank/Cabang, tidak menyebar ke kolom lain */
+  .table-modern th:nth-child(1),
+  .table-modern td:nth-child(1) {
+    border-right: 1px solid #e9ecef;
+  }
+  .table-modern th:nth-child(3),
+  .table-modern td:nth-child(3) {
+    border-right: 2px solid #dee2e6;
+  }
+  /* Hover baris saja, tanpa striping kolom acak */
+  .table-modern tbody tr:hover {
+    background-color: #f3f7ff;
+  }
+
+  /* Tombol proses: lebar wajar & center di desktop, tidak raksasa, tetap nyaman di mobile */
+  #submit-btn {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+    font-size: 1rem;
+  }
+  @media (max-width: 576px) {
+    #submit-btn {
+      max-width: 100%;
+      padding-top: 0.55rem;
+      padding-bottom: 0.55rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Tombol Filter Pengecualian: saat aktif/terbuka (aria-expanded="true"),
+     background jadi biru solid dan teks otomatis jadi putih supaya kontras. */
+  #collapseFilters ~ * ,
+  .btn-filter-toggle {
+    /* placeholder, tidak dipakai - lihat aturan di bawah */
+  }
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"] {
+    border-color: #0d6efd !important;
+    color: #0d6efd !important;
+    background-color: transparent !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"]:hover,
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"]:focus {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+  }
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"] {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+  }
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"] i {
+    color: #ffffff !important;
+  }
+  @media (max-width: 576px) {
+    button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"] {
+      font-size: 0.8rem !important;
+      padding: 0.35rem 0.7rem !important;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -81,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 {% block content %}
 <div class="card border-0 shadow-sm rounded-4 mb-4">
-  <!-- FIX TOTAL: Menggunakan inline style kuat (!important) untuk memaksa background biru dan text putih -->
+  <!-- Header Kuat (Latar Biru Gradient & Teks Putih Baku) -->
   <div class="card-header p-4 d-flex flex-wrap justify-content-between align-items-center gap-3 rounded-top-4" 
        style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; background-color: #0d6efd !important; color: #ffffff !important;">
     <div>
@@ -111,45 +276,66 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- Form Upload & Filter -->
     <form method="post" enctype="multipart/form-data" id="loan-form" class="mb-4" aria-label="Form unggah dan filter">
       {% csrf_token %}
-      <div class="row g-3 mb-4">
-        <div class="col-md-4">
-          <div class="upload-zone h-100 d-flex flex-column justify-content-center">
+      
+      <div class="row g-3 mb-3">
+        <!-- Input Utama: Selalu Terlihat -->
+        <div class="col-12">
+          <div class="upload-zone p-3">
             <label for="pdf_file" class="form-label fw-bold text-secondary mb-2">Upload PDF SLIK OJK</label>
             <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" class="form-control form-control-sm" required aria-describedby="pdfHelp">
-            <div id="pdfHelp" class="form-text mt-2 small text-muted">
+            <div id="pdfHelp" class="form-text mt-2 hint-muted">
               Hanya hitung <strong>Kondisi = Fasilitas Aktif</strong>. Format file wajib <code>.pdf</code>.
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded-3 h-100 bg-light-subtle">
-            <label for="excluded_banks" class="form-label fw-bold text-secondary">
-              Bank yang Dikecualikan
-            </label>
-            <input type="text" name="excluded_banks" id="excluded_banks"
-                   value="{{ excluded_banks|default:'' }}"
-                   placeholder="Contoh: BRI, Mandiri"
-                   class="form-control"
-                   aria-label="Bank yang dikecualikan" />
-            <div class="form-text small text-muted">Pisahkan dengan koma jika lebih dari satu.</div>
-          </div>
+
+        <!-- Tombol Pemicu Menu Filter Pengecualian (background & teks berubah otomatis saat aktif via CSS) -->
+        <div class="col-12 text-start">
+          <button class="btn btn-outline-primary btn-sm fw-semibold shadow-sm px-3" 
+                  type="button" 
+                  data-bs-toggle="collapse" 
+                  data-bs-target="#collapseFilters" 
+                  aria-expanded="{% if excluded_banks or excluded_branches %}true{% else %}false{% endif %}" 
+                  aria-controls="collapseFilters">
+            <i class="bi bi-sliders me-1"></i> Opsi Filter Pengecualian (Bank / Cabang)
+          </button>
         </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded-3 h-100 bg-light-subtle">
-            <label for="excluded_branches" class="form-label fw-bold text-secondary">
-              Cabang yang Dikecualikan
-            </label>
-            <input type="text" name="excluded_branches" id="excluded_branches"
-                   value="{{ excluded_branches|default:'' }}"
-                   placeholder="Contoh: KPO, Jakarta Selatan"
-                   class="form-control"
-                   aria-label="Cabang yang dikecualikan" />
-            <div class="form-text small text-muted">Pisahkan dengan koma jika lebih dari satu.</div>
+
+        <!-- Bagian Filter yang Bisa Disembunyikan / Ditampilkan -->
+        <div class="collapse {% if excluded_banks or excluded_branches %}show{% endif %}" id="collapseFilters">
+          <div class="row g-3 pt-2">
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 bg-light-subtle">
+                <label for="excluded_banks" class="form-label fw-bold text-secondary">
+                  Bank yang Dikecualikan
+                </label>
+                <input type="text" name="excluded_banks" id="excluded_banks"
+                       value="{{ excluded_banks|default:'' }}"
+                       placeholder="Contoh: BRI, Mandiri"
+                       class="form-control form-control-sm"
+                       aria-label="Bank yang dikecualikan" />
+                <div class="form-text hint-muted">Pisahkan dengan koma jika lebih dari satu.</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 bg-light-subtle">
+                <label for="excluded_branches" class="form-label fw-bold text-secondary">
+                  Cabang yang Dikecualikan
+                </label>
+                <input type="text" name="excluded_branches" id="excluded_branches"
+                       value="{{ excluded_branches|default:'' }}"
+                       placeholder="Contoh: KPO, Jakarta Selatan"
+                       class="form-control form-control-sm"
+                       aria-label="Cabang yang dikecualikan" />
+                <div class="form-text hint-muted">Pisahkan dengan koma jika lebih dari satu.</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-lg w-100 d-flex justify-content-center align-items-center py-2 fw-semibold shadow-sm" id="submit-btn">
+      <!-- Tombol Proses yang Dioptimalkan Tingginya untuk Mobile -->
+      <button type="submit" class="btn btn-primary d-flex justify-content-center align-items-center fw-semibold shadow-sm" id="submit-btn">
         <span id="btn-text">Proses &amp; Hitung Total Hutang Nasabah</span>
         <span id="spinner" class="spinner-border spinner-border-sm ms-2 d-none" aria-hidden="true"></span>
       </button>
@@ -158,50 +344,62 @@ document.addEventListener("DOMContentLoaded", function () {
     {% if result %}
       <hr class="my-4 text-muted opacity-25">
       
-      <!-- Penataan Baru Ringkasan Informasi Finansial (Stat Cards) -->
-      <div class="row g-3 mb-4">
+      <!-- Ringkasan Informasi Finansial (Stat Cards) -->
+      <div class="row g-3 mb-4 mx-0">
         <!-- Card Nama Nasabah -->
         <div class="col-md-4">
-          <div class="card h-100 border-0 shadow-sm stat-card {% if result.nama and result.nama != 'TIDAK DITEMUKAN' %}bg-info-subtle text-info-dark{% else %}bg-warning-subtle text-warning-dark{% endif %} p-3 rounded-3">
-            <div class="small fw-semibold text-uppercase opacity-75 mb-1">Nama Nasabah</div>
-            <div class="fs-5 fw-bold text-truncate">
-              {{ result.nama }}
+          <div class="card h-100 shadow-sm stat-card stat-card-elegant">
+            <div class="stat-icon"><i class="bi bi-person-fill"></i></div>
+            <div class="stat-body">
+              <div class="stat-label mb-1">Nama Nasabah</div>
+              <div class="fs-5 stat-value text-truncate">
+                {{ result.nama }}
+              </div>
+              {% if result.nama == "TIDAK DITEMUKAN" %}
+                <div class="small mt-1 text-muted fw-normal" style="font-size: 0.75rem;">Tidak terdeteksi otomatis, silakan verifikasi manual.</div>
+              {% endif %}
             </div>
-            {% if result.nama == "TIDAK DITEMUKAN" %}
-              <div class="small mt-1 text-muted fw-normal" style="font-size: 0.75rem;">Tidak terdeteksi otomatis, silakan verifikasi manual.</div>
-            {% endif %}
           </div>
         </div>
 
         {% if not result.all_paid %}
           <!-- Card Jumlah Fasilitas -->
           <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm stat-card bg-secondary-subtle text-secondary-dark p-3 rounded-3">
-              <div class="small fw-semibold text-uppercase opacity-75 mb-1">Jumlah Fasilitas Aktif</div>
-              <div class="fs-3 fw-bold">
-                {{ result.rows|length }} <span class="fs-6 fw-normal text-muted">Fasilitas</span>
+            <div class="card h-100 shadow-sm stat-card stat-card-elegant">
+              <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+              <div class="stat-body">
+                <div class="stat-label mb-1">Jumlah Fasilitas Aktif</div>
+                <div class="fs-3 stat-value">
+                  {{ result.rows|length }} <span class="fs-6 fw-normal text-muted">Fasilitas</span>
+                </div>
               </div>
             </div>
           </div>
           <!-- Card Total Monthly Payment -->
           <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm stat-card bg-success-subtle text-success-dark p-3 rounded-3">
-              <div class="small fw-semibold text-uppercase opacity-75 mb-1">Total Monthly Payment</div>
-              <div class="fs-3 fw-bold text-success">
-                <span class="fs-6 fw-semibold text-muted">Rp</span>
-                {% if result.total_monthly_payment %}
-                  {{ result.total_monthly_payment|floatformat:2|intcomma }}
-                {% else %}
-                  0
-                {% endif %}
+            <div class="card h-100 shadow-sm stat-card stat-card-elegant">
+              <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+              <div class="stat-body">
+                <div class="stat-label mb-1">Total Monthly Payment</div>
+                <div class="fs-3 stat-value text-money">
+                  <span class="fs-6 fw-semibold text-muted">Rp</span>
+                  {% if result.total_monthly_payment %}
+                    {{ result.total_monthly_payment|floatformat:2|intcomma }}
+                  {% else %}
+                    0
+                  {% endif %}
+                </div>
               </div>
             </div>
           </div>
         {% else %}
           <!-- Card Lunas Semua -->
           <div class="col-md-8">
-            <div class="card h-100 border-0 shadow-sm stat-card bg-success text-white p-3 rounded-3 d-flex justify-content-center align-items-start">
-              <div class="fs-5 fw-bold">Semua fasilitas sudah lunas / tidak ada fasilitas aktif</div>
+            <div class="card h-100 shadow-sm stat-card stat-card-elegant">
+              <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="stat-body">
+                <div class="fs-5 stat-value">Semua fasilitas sudah lunas / tidak ada fasilitas aktif</div>
+              </div>
             </div>
           </div>
         {% endif %}
@@ -219,9 +417,9 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           {% endif %}
 
-          <!-- Desktop table (Modern Styling) -->
+          <!-- Desktop table -->
           <div class="d-none d-md-block table-responsive rounded-3 border">
-            <table class="table table-hover table-striped-columns align-middle mb-0 table-modern text-center" aria-label="Tabel hasil perhitungan hutang nasabah">
+            <table class="table table-hover align-middle mb-0 table-modern text-center" aria-label="Tabel hasil perhitungan hutang nasabah">
               <caption class="visually-hidden">Rincian fasilitas aktif nasabah dan total pembayaran bulanan</caption>
               <thead class="table-light border-bottom text-uppercase fw-bold text-secondary">
                 <tr>
@@ -329,7 +527,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </table>
           </div>
 
-          <!-- Mobile accordion fallback (Cleaner & Modern Layout) -->
+          <!-- Mobile accordion fallback -->
           <div class="d-block d-md-none">
             <div class="accordion shadow-sm rounded-3 overflow-hidden border" id="facilitiesAccordion">
               {% for row in result.rows %}
