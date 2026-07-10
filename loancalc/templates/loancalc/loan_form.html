@@ -60,7 +60,6 @@
   .stat-card-elegant {
     background-color: #ffffff;
     border: 1px solid #e9ecef;
-    border-left: 5px solid #ced4da;
     border-radius: 0.6rem;
     padding: 0.9rem 1.1rem !important;
     display: flex;
@@ -187,6 +186,15 @@
       padding: 0.35rem 0.7rem !important;
     }
   }
+
+  /* Tombol Lihat Kualitas Bermasalah: badge kecil penanda jumlah masalah */
+  #show-problem-btn {
+    position: relative;
+  }
+  #show-problem-btn .badge-count {
+    font-size: 0.65rem;
+    padding: 0.2em 0.45em;
+  }
 </style>
 {% endblock %}
 
@@ -198,15 +206,44 @@
 </script>
 
 <script>
+// Disimpan di scope global supaya bisa dipanggil ulang lewat tombol "Lihat Kualitas Bermasalah"
+let problemFacilities = [];
+
+function buildProblemFacilitiesHtml(list) {
+    let html = "";
+    list.forEach(function (f, i) {
+        html += `
+            <div style="text-align:left; margin-bottom:12px; padding-bottom:8px; ${i < list.length - 1 ? 'border-bottom:1px solid #eee;' : ''}">
+                <b>Pelapor:</b> ${f.pelapor}<br/>
+                <b>Cabang:</b> ${f.cabang}<br/>
+                <b>Tanggal Update:</b> ${f.tanggal_update}<br/>
+                <b>Bulan/Tahun:</b> ${f.bulan_tahun}<br/>
+                <b>Kualitas:</b> ${f.kualitas}
+            </div>
+        `;
+    });
+    return html;
+}
+
+function showProblemFacilitiesPopup() {
+    if (!problemFacilities || problemFacilities.length === 0) return;
+
+    Swal.fire({
+        icon: "warning",
+        title: "Kualitas Bermasalah Ditemukan",
+        html: `<div style="max-height:300px; overflow-y:auto;">${buildProblemFacilitiesHtml(problemFacilities)}</div>`,
+        confirmButtonText: "Mengerti",
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const dataElement = document.getElementById("problem-facilities-data");
-    
+
     if (!dataElement) {
         console.error("Element problem-facilities-data not found!");
         return;
     }
-    
-    let problemFacilities = [];
+
     try {
         problemFacilities = JSON.parse(dataElement.textContent);
         console.log("Parsed problemFacilities:", problemFacilities);
@@ -215,28 +252,21 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    const showBtn = document.getElementById("show-problem-btn");
+    const countBadge = document.getElementById("problem-count-badge");
+
     if (problemFacilities && problemFacilities.length > 0) {
         console.log("Showing SweetAlert with", problemFacilities.length, "problems");
-        
-        let html = "";
-        problemFacilities.forEach(function (f, i) {
-            html += `
-                <div style="text-align:left; margin-bottom:12px; padding-bottom:8px; ${i < problemFacilities.length - 1 ? 'border-bottom:1px solid #eee;' : ''}">
-                    <b>Pelapor:</b> ${f.pelapor}<br/>
-                    <b>Cabang:</b> ${f.cabang}<br/>
-                    <b>Tanggal Update:</b> ${f.tanggal_update}<br/>
-                    <b>Bulan/Tahun:</b> ${f.bulan_tahun}<br/>
-                    <b>Kualitas:</b> ${f.kualitas}
-                </div>
-            `;
-        });
 
-        Swal.fire({
-            icon: "warning",
-            title: "Kualitas Bermasalah Ditemukan",
-            html: `<div style="max-height:300px; overflow-y:auto;">${html}</div>`,
-            confirmButtonText: "Mengerti",
-        });
+        // Tombol "Lihat Kualitas Bermasalah" muncul & diisi jumlahnya,
+        // supaya popup yang sudah di-close bisa dibuka lagi kapan saja.
+        if (showBtn && countBadge) {
+            countBadge.textContent = problemFacilities.length;
+            showBtn.classList.remove("d-none");
+        }
+
+        // Tampilkan otomatis sekali saat halaman pertama kali menampilkan hasil
+        showProblemFacilitiesPopup();
     } else {
         console.log("No problem facilities found (semua lancar)");
     }
@@ -254,15 +284,28 @@ document.addEventListener("DOMContentLoaded", function () {
       <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85) !important; margin: 0;">Integrasi data rekam jejak finansial berdasarkan dokumen SLIK OJK</p>
     </div>
     {% if result and result.rows %}
-      <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
-        {% csrf_token %}
-        <input type="hidden" name="export_csv" value="1" />
-        <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
-        <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
-        <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
-          Export CSV
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <button type="button" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary d-none" id="show-problem-btn" onclick="showProblemFacilitiesPopup()" title="Lihat Kualitas Bermasalah" aria-label="Lihat kembali detail kualitas bermasalah">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span class="badge bg-danger rounded-pill badge-count ms-1" id="problem-count-badge"></span>
         </button>
-      </form>
+        <a href="{{ request.path }}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" id="clear-data-btn" aria-label="Bersihkan data dan kembali ke kondisi awal">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Data
+        </a>
+        <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
+          {% csrf_token %}
+          <input type="hidden" name="export_csv" value="1" />
+          <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
+          <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
+          <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
+            Export CSV
+          </button>
+        </form>
+      </div>
+    {% elif result %}
+      <a href="{{ request.path }}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" id="clear-data-btn" aria-label="Bersihkan data dan kembali ke kondisi awal">
+        <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Data
+      </a>
     {% endif %}
   </div>
 
