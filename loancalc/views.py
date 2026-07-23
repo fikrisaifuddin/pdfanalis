@@ -8,9 +8,19 @@ import json
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 
-from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah
+from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah, calculate_credit_analysis
 
 logger = logging.getLogger(__name__)
+
+
+def parse_float_input(val, default=0.0) -> float:
+    if not val:
+        return default
+    try:
+        cleaned = str(val).replace("Rp", "").replace(" ", "").replace(".", "").replace(",", ".")
+        return float(cleaned)
+    except Exception:
+        return default
 
 
 def loan_calc_view(request: HttpRequest) -> HttpResponse:
@@ -24,10 +34,24 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     excluded_banks: List[str] = [b.strip() for b in raw_exclude_banks.split(",") if b.strip()]
     excluded_branches: List[str] = [c.strip() for c in raw_exclude_branches.split(",") if c.strip()]
 
-    # (Dihapus) Default for GET -- dulu di sini result diisi dummy "all_paid": True
-    # sehingga kartu "Semua fasilitas lunas" muncul walau belum ada file diupload.
-    # Sekarang result dibiarkan None saat GET awal, supaya blok hasil di template
-    # ({% if result %}) tidak dirender sama sekali sebelum ada proses.
+    # Parameter Analisis Kredit / KPR
+    status_pekerjaan = request.POST.get("status_pekerjaan", "tetap") if request.method == "POST" else "tetap"
+    penghasilan_bersih_raw = request.POST.get("penghasilan_bersih", "") if request.method == "POST" else ""
+    harga_jual_raw = request.POST.get("harga_jual", "") if request.method == "POST" else ""
+    uang_muka_raw = request.POST.get("uang_muka", "") if request.method == "POST" else ""
+    suku_bunga_raw = request.POST.get("suku_bunga", "7.5") if request.method == "POST" else "7.5"
+    bunga_floating_raw = request.POST.get("bunga_floating", "12.0") if request.method == "POST" else "12.0"
+    tenor_tahun_raw = request.POST.get("tenor_tahun", "15") if request.method == "POST" else "15"
+
+    penghasilan_bersih = parse_float_input(penghasilan_bersih_raw, 0.0)
+    harga_jual = parse_float_input(harga_jual_raw, 0.0)
+    uang_muka = parse_float_input(uang_muka_raw, 0.0)
+    suku_bunga = parse_float_input(suku_bunga_raw, 7.5)
+    bunga_floating = parse_float_input(bunga_floating_raw, 12.0)
+    try:
+        tenor_tahun = int(tenor_tahun_raw)
+    except Exception:
+        tenor_tahun = 15
 
     if request.method == "POST":
         pdf_file = request.FILES.get("pdf_file")
@@ -69,6 +93,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             "total_monthly_payment": 0.0,
                             "nama": nama_nasabah,
                             "all_paid": True,
+                            "problem_facilities": [],
                         }
                     else:
                         # Pastikan DataFrame
@@ -79,18 +104,6 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             import pandas as _pd
                             df = _pd.DataFrame(df) if not isinstance(df, _pd.DataFrame) else df
                             records = df.to_dict(orient="records")
-
-                        # ===== DEBUG 1 =====
-                        print(f"\n{'='*70}")
-                        print(f"DEBUG 1: KUALITAS EXTRACTION")
-                        print(f"{'='*70}")
-                        print(f"Total records: {len(records)}")
-                        for i, rec in enumerate(records):
-                            kualitas = rec.get('kualitas', 'TIDAK DITEMUKAN')
-                            bank = rec.get('bank', 'TIDAK DITEMUKAN')
-                            cabang = rec.get('cabang', 'TIDAK DITEMUKAN')
-                            print(f"  Record {i}: bank='{bank}' | cabang='{cabang}' | kualitas='{kualitas}'")
-                        print(f"{'='*70}\n")
 
                         rows = []
                         for rec in records:
@@ -117,22 +130,12 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                                 "pelapor": rec.get("bank", "TIDAK DITEMUKAN"),
                                 "cabang": rec.get("cabang", "TIDAK DITEMUKAN"),
                                 "tanggal_update": rec.get("tanggal_update", "TIDAK DITEMUKAN"),
-                                "bulan_tahun": rec.get("bulan_tahun", "TIDAK DITEMUKAN"),  # <-- BARIS BARU
+                                "bulan_tahun": rec.get("bulan_tahun", "TIDAK DITEMUKAN"),
                                 "kualitas": rec.get("kualitas", "TIDAK DITEMUKAN"),
                             }
                             for rec in records
                             if is_kualitas_bermasalah(rec.get("kualitas", ""))
                         ]
-
-                        # ===== DEBUG 2 =====
-                        print(f"\n{'='*70}")
-                        print(f"DEBUG 2: PROBLEM FACILITIES FILTERING")
-                        print(f"{'='*70}")
-                        print(f"Total records: {len(records)}")
-                        print(f"Problem facilities (kualitas != '1-...'): {len(problem_facilities)}")
-                        for i, pf in enumerate(problem_facilities):
-                            print(f"  Problem {i}: {pf['pelapor']} / {pf['cabang']} => Kualitas: '{pf['kualitas']}'")
-                        print(f"{'='*70}\n")
 
                         problem_facilities_json = json.dumps(problem_facilities, default=str)
 
@@ -145,8 +148,22 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             "total_monthly_payment": meta.get("total_monthly_payment", 0.0),
                             "nama": final_name,
                             "all_paid": False,
-                            "problem_facilities": problem_facilities
+                            "problem_facilities": problem_facilities,
                         }
+
+                    # Hitung analisis kredit (3 aspek)
+                    if result is not None:
+                        result["analisis_kredit"] = calculate_credit_analysis(
+                            status_pekerjaan=status_pekerjaan,
+                            penghasilan_bersih=penghasilan_bersih,
+                            harga_jual=harga_jual,
+                            uang_muka=uang_muka,
+                            suku_bunga=suku_bunga,
+                            bunga_floating=bunga_floating,
+                            tenor_tahun=tenor_tahun,
+                            total_monthly_slik=result.get("total_monthly_payment", 0.0),
+                            problem_facilities_count=len(result.get("problem_facilities", [])),
+                        )
 
                     # Export CSV jika diminta
                     if request.POST.get("export_csv") == "1" and result and result.get("rows"):
@@ -175,6 +192,18 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         "total_monthly_payment": 0.0,
                         "nama": nama_nasabah,
                         "all_paid": True,
+                        "problem_facilities": [],
+                        "analisis_kredit": calculate_credit_analysis(
+                            status_pekerjaan=status_pekerjaan,
+                            penghasilan_bersih=penghasilan_bersih,
+                            harga_jual=harga_jual,
+                            uang_muka=uang_muka,
+                            suku_bunga=suku_bunga,
+                            bunga_floating=bunga_floating,
+                            tenor_tahun=tenor_tahun,
+                            total_monthly_slik=0.0,
+                            problem_facilities_count=0,
+                        ),
                     }
                 finally:
                     if tmp_path and os.path.exists(tmp_path):
@@ -183,28 +212,22 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         except Exception:
                             logger.warning("Gagal menghapus file temporer: %s", tmp_path)
 
-    # (Dihapus) blok "Pastikan result tidak None" -- dulu di sini result dipaksa
-    # selalu terisi walau None, sehingga GET awal ikut menampilkan kartu hasil.
-    # Sekarang result dibiarkan None kalau memang belum diproses.
-
     context = {
         "result": result,
         "error": error,
         "message": message,
         "excluded_banks": raw_exclude_banks,
         "excluded_branches": raw_exclude_branches,
+        "status_pekerjaan": status_pekerjaan,
+        "penghasilan_bersih": penghasilan_bersih_raw,
+        "harga_jual": harga_jual_raw,
+        "uang_muka": uang_muka_raw,
+        "suku_bunga": suku_bunga_raw,
+        "bunga_floating": bunga_floating_raw,
+        "tenor_tahun": tenor_tahun_raw,
         "problem_facilities_json": json.dumps(
             result.get("problem_facilities", []) if result else [], default=str
         ),
     }
 
-    # ===== DEBUG 3 =====
-    print(f"\n{'='*70}")
-    print(f"DEBUG 3: CONTEXT JSON")
-    print(f"{'='*70}")
-    print(f"problem_facilities_json length: {len(context['problem_facilities_json'])}")
-    print(f"problem_facilities_json value:")
-    print(f"{context['problem_facilities_json']}")
-    print(f"{'='*70}\n")
-
-    return render(request, "loancalc/loan_form.html", context)
+    return render(request, "loancalc/loan_form.html", context)

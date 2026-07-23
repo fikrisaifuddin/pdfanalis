@@ -937,3 +937,139 @@ def extract_slik_data(
         "total_monthly_payment": round(total_monthly_payment, 2),
     }
     return df, meta
+
+
+def calculate_credit_analysis(
+    status_pekerjaan: str = "tetap",
+    penghasilan_bersih: float = 0.0,
+    harga_jual: float = 0.0,
+    uang_muka: float = 0.0,
+    suku_bunga: float = 7.5,
+    bunga_floating: float = 12.0,
+    tenor_tahun: int = 15,
+    total_monthly_slik: float = 0.0,
+    problem_facilities_count: int = 0
+) -> dict:
+    status_clean = str(status_pekerjaan).lower()
+    if status_clean == "kontrak":
+        persentase_gaji = 35.0
+        label_pekerjaan = "Pegawai Kontrak (35%)"
+    elif status_clean == "pengusaha":
+        persentase_gaji = 50.0
+        label_pekerjaan = "Pengusaha (50%)"
+    else:
+        persentase_gaji = 50.0
+        label_pekerjaan = "Pegawai Tetap (50%)"
+
+    # 1. Gaji yang diakui = Penghasilan * Persentase (50% / 35%)
+    gaji_diakui = penghasilan_bersih * (persentase_gaji / 100.0)
+    
+    # 2. Kapasitas Bulanan = Gaji Diakui - Total Hutang SLIK
+    kapasitas_bulanan = gaji_diakui - total_monthly_slik
+    
+    # 3. Kapasitas Tahunan = Kapasitas Bulanan * 12
+    kapasitas_tahunan = kapasitas_bulanan * 12.0
+    
+    # 4. Maksimal Plafon KPR = Kapasitas Tahunan / Bunga Floating
+    bunga_floating_val = float(bunga_floating) if bunga_floating and float(bunga_floating) > 0 else 12.0
+    rate_floating_decimal = bunga_floating_val / 100.0
+    
+    if kapasitas_tahunan > 0 and rate_floating_decimal > 0:
+        maks_plafon_kpr = kapasitas_tahunan / rate_floating_decimal
+    else:
+        maks_plafon_kpr = 0.0
+
+    # Nilai KPR Diminta (Harga Jual - Uang Muka)
+    nilai_kpr = max(0.0, harga_jual - uang_muka)
+    
+    # Angsuran KPR Baru (Metode Anuitas)
+    n_months = int(tenor_tahun * 12) if tenor_tahun and tenor_tahun > 0 else 180
+    loan_calc = calculate_loan_details(nilai_kpr, suku_bunga, n_months)
+    angsuran_kpr_baru = loan_calc.get("Monthly Payment", 0.0)
+    
+    ltv_ratio = (nilai_kpr / harga_jual * 100.0) if harga_jual > 0 else 0.0
+    dp_percent = (uang_muka / harga_jual * 100.0) if harga_jual > 0 else 0.0
+    
+    # --- Evaluasi 1: Karakter ---
+    if problem_facilities_count == 0:
+        karakter_status = "LANCAR (BAIK)"
+        karakter_badge = "success"
+        karakter_desc = "Tidak ditemukan catatan kredit bermasalah pada SLIK OJK."
+    else:
+        karakter_status = f"BERMASALAH ({problem_facilities_count} Fasilitas)"
+        karakter_badge = "danger"
+        karakter_desc = f"Terdapat {problem_facilities_count} fasilitas kredit berstatus tunggakan/kualitas bermasalah."
+
+    # --- Evaluasi 2: Kapasitas ---
+    selisih_plafon = maks_plafon_kpr - nilai_kpr
+    selisih_angsuran = kapasitas_bulanan - angsuran_kpr_baru
+    
+    if penghasilan_bersih <= 0:
+        kapasitas_status = "BELUM DIISI"
+        kapasitas_badge = "secondary"
+        kapasitas_desc = "Masukkan nilai penghasilan bersih untuk menghitung kapasitas angsuran."
+    elif selisih_plafon >= 0 and selisih_angsuran >= 0:
+        kapasitas_status = "MEMENUHI (LAYAK)"
+        kapasitas_badge = "success"
+        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) mencukupi untuk Plafon KPR yang diminta (Rp {nilai_kpr:,.0f})."
+    else:
+        kapasitas_status = "DEFISIT (TIDAK MEMENUHI)"
+        kapasitas_badge = "danger"
+        kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f})."
+
+    # --- Evaluasi 3: Kolateral ---
+    if harga_jual <= 0:
+        kolateral_status = "BELUM DIISI"
+        kolateral_badge = "secondary"
+        kolateral_desc = "Masukkan harga jual properti untuk menghitung LTV Ratio."
+    elif ltv_ratio <= 85.0:
+        kolateral_status = "MEMENUHI (LTV IDEAL)"
+        kolateral_badge = "success"
+        kolateral_desc = f"LTV Ratio sebesar {ltv_ratio:.2f}% (DP {dp_percent:.2f}%). Nilai agunan mencukupi."
+    else:
+        kolateral_status = "RISIKO TINGGI (LTV > 85%)"
+        kolateral_badge = "warning"
+        kolateral_desc = f"LTV Ratio sebesar {ltv_ratio:.2f}% (DP {dp_percent:.2f}%). Uang muka disarankan minimal 15-20%."
+
+    is_layak = (problem_facilities_count == 0) and (selisih_plafon >= 0) and (ltv_ratio <= 85.0) and (penghasilan_bersih > 0) and (harga_jual > 0)
+
+    return {
+        "status_pekerjaan": status_clean,
+        "label_pekerjaan": label_pekerjaan,
+        "persentase_gaji": persentase_gaji,
+        "penghasilan_bersih": penghasilan_bersih,
+        "gaji_diakui": gaji_diakui,
+        "harga_jual": harga_jual,
+        "uang_muka": uang_muka,
+        "nilai_kpr": nilai_kpr,
+        "suku_bunga": suku_bunga,
+        "bunga_floating": bunga_floating_val,
+        "tenor_tahun": tenor_tahun,
+        "tenor_bulan": n_months,
+        "total_monthly_slik": total_monthly_slik,
+        "kapasitas_bulanan": kapasitas_bulanan,
+        "kapasitas_tahunan": kapasitas_tahunan,
+        "maks_plafon_kpr": maks_plafon_kpr,
+        "angsuran_kpr_baru": angsuran_kpr_baru,
+        "selisih_plafon": selisih_plafon,
+        "selisih_angsuran": selisih_angsuran,
+        "ltv_ratio": ltv_ratio,
+        "dp_percent": dp_percent,
+        "karakter": {
+            "status": karakter_status,
+            "badge": karakter_badge,
+            "desc": karakter_desc,
+        },
+        "kapasitas": {
+            "status": kapasitas_status,
+            "badge": kapasitas_badge,
+            "desc": kapasitas_desc,
+        },
+        "kolateral": {
+            "status": kolateral_status,
+            "badge": kolateral_badge,
+            "desc": kolateral_desc,
+        },
+        "is_layak": is_layak,
+    }
+

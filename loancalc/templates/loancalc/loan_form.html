@@ -321,13 +321,86 @@ document.addEventListener("DOMContentLoaded", function () {
       {% csrf_token %}
       
       <div class="row g-3 mb-3">
-        <!-- Input Utama: Selalu Terlihat -->
+        <!-- Input Utama: Upload PDF -->
         <div class="col-12">
           <div class="upload-zone p-3">
             <label for="pdf_file" class="form-label fw-bold text-secondary mb-2">Upload PDF SLIK OJK</label>
             <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" class="form-control form-control-sm" required aria-describedby="pdfHelp">
             <div id="pdfHelp" class="form-text mt-2 hint-muted">
               Hanya hitung <strong>Kondisi = Fasilitas Aktif</strong>. Format file wajib <code>.pdf</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Parameter Analisis Kredit / KPR berdasarkan Pendapatan -->
+        <div class="col-12">
+          <div class="p-3 border rounded-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-calculator-fill me-1"></i> Parameter Analisis KPR &amp; Pendapatan Nasabah</h6>
+              <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 small">Hitung Kapasitas &amp; Agunan</span>
+            </div>
+            
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
+                <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm shadow-sm">
+                  <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (50% Gaji Diakui)</option>
+                  <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
+                  <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (50% Gaji Diakui)</option>
+                </select>
+                <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
+              </div>
+              <div class="col-md-3">
+                <label for="penghasilan_bersih" class="form-label fw-bold text-secondary small mb-1">Penghasilan Bersih / Bulan (Rp)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white">Rp</span>
+                  <input type="text" name="penghasilan_bersih" id="penghasilan_bersih" value="{{ penghasilan_bersih|default:'' }}" placeholder="Contoh: 15.000.000" class="form-control rupiah-input shadow-sm">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label for="harga_jual" class="form-label fw-bold text-secondary small mb-1">Harga Jual Agunan (Rp)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white">Rp</span>
+                  <input type="text" name="harga_jual" id="harga_jual" value="{{ harga_jual|default:'' }}" placeholder="Contoh: 500.000.000" class="form-control rupiah-input shadow-sm">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label for="uang_muka" class="form-label fw-bold text-secondary small mb-1">Uang Muka / DP (Rp)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white">Rp</span>
+                  <input type="text" name="uang_muka" id="uang_muka" value="{{ uang_muka|default:'' }}" placeholder="Contoh: 100.000.000" class="form-control rupiah-input shadow-sm">
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <label for="bunga_floating" class="form-label fw-bold text-secondary small mb-1">Bunga Floating (% p.a.)</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" name="bunga_floating" id="bunga_floating" value="{{ bunga_floating|default:'12.0' }}" placeholder="12.0" class="form-control shadow-sm">
+                  <span class="input-group-text bg-white">%</span>
+                </div>
+                <div class="form-text hint-muted">Suku bunga floating untuk hitung plafon max.</div>
+              </div>
+              <div class="col-md-3">
+                <label for="suku_bunga" class="form-label fw-bold text-secondary small mb-1">Bunga KPR Fixed (% p.a.)</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" name="suku_bunga" id="suku_bunga" value="{{ suku_bunga|default:'7.5' }}" placeholder="7.5" class="form-control shadow-sm">
+                  <span class="input-group-text bg-white">%</span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label for="tenor_tahun" class="form-label fw-bold text-secondary small mb-1">Tenor (Tahun)</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" name="tenor_tahun" id="tenor_tahun" value="{{ tenor_tahun|default:'15' }}" placeholder="15" class="form-control shadow-sm">
+                  <span class="input-group-text bg-white">Tahun</span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label for="nilai_kpr_display" class="form-label fw-bold text-secondary small mb-1">Nilai KPR (Diminta)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light-subtle">Rp</span>
+                  <input type="text" id="nilai_kpr_display" readonly class="form-control bg-light-subtle fw-bold text-primary shadow-sm" placeholder="Otomatis (Harga - DP)">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -386,8 +459,121 @@ document.addEventListener("DOMContentLoaded", function () {
 
     {% if result %}
       <hr class="my-4 text-muted opacity-25">
-      
+
+      <!-- DASHBOARD ANALISIS 3 ASPEK KREDIT (KARAKTER, KAPASITAS, KOLATERAL) -->
+      {% if result.analisis_kredit %}
+        <div class="card border-0 bg-light rounded-4 p-4 mb-4 shadow-sm">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h5 class="fw-bold mb-0 text-dark">
+              <i class="bi bi-shield-check text-primary me-2"></i> Hasil Penilaian Analisis 3 Aspek Kredit
+            </h5>
+            <div>
+              {% if result.analisis_kredit.is_layak %}
+                <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> REKOMENDASI: LAYAK (MEMENUHI)</span>
+              {% else %}
+                <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i> REKOMENDASI: PERLU EVALUASI</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <!-- 1. ASPEK KARAKTER -->
+            <div class="col-md-4">
+              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-uppercase small text-secondary">1. Karakter (Histori SLIK)</span>
+                  <span class="badge bg-{{ result.analisis_kredit.karakter.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.karakter.status }}</span>
+                </div>
+                <p class="small text-muted mb-2">{{ result.analisis_kredit.karakter.desc }}</p>
+                <hr class="my-2 text-muted opacity-25">
+                <div class="small">
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">Fasilitas Bermasalah:</span>
+                    <span class="fw-bold {% if result.problem_facilities %}text-danger{% else %}text-success{% endif %}">
+                      {{ result.problem_facilities|length }} Fasilitas
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. ASPEK KAPASITAS -->
+            <div class="col-md-4">
+              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-uppercase small text-secondary">2. Kapasitas (Kemampuan Bayar)</span>
+                  <span class="badge bg-{{ result.analisis_kredit.kapasitas.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.kapasitas.status }}</span>
+                </div>
+                <p class="small text-muted mb-2">{{ result.analisis_kredit.kapasitas.desc }}</p>
+                <hr class="my-2 text-muted opacity-25">
+                <div class="small">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Status:</span>
+                    <span class="fw-bold text-dark">{{ result.analisis_kredit.label_pekerjaan }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Gaji Diakui ({{ result.analisis_kredit.persentase_gaji|floatformat:0 }}%):</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.gaji_diakui|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1 text-danger">
+                    <span>Hutang SLIK Eksisting:</span>
+                    <span class="fw-bold">- Rp {{ result.analisis_kredit.total_monthly_slik|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1 text-primary border-top pt-1">
+                    <span class="fw-semibold">Kapasitas Bulanan:</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.kapasitas_bulanan|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1 text-secondary">
+                    <span>Kapasitas Tahunan (x12):</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.kapasitas_tahunan|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1 text-dark">
+                    <span>Bunga Floating:</span>
+                    <span class="fw-bold">{{ result.analisis_kredit.bunga_floating|floatformat:2 }}%</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-success pt-1 border-top fs-6">
+                    <span class="fw-bold">Maks. Plafon KPR:</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.maks_plafon_kpr|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. ASPEK KOLATERAL -->
+            <div class="col-md-4">
+              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-uppercase small text-secondary">3. Kolateral (Nilai Agunan)</span>
+                  <span class="badge bg-{{ result.analisis_kredit.kolateral.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.kolateral.status }}</span>
+                </div>
+                <p class="small text-muted mb-2">{{ result.analisis_kredit.kolateral.desc }}</p>
+                <hr class="my-2 text-muted opacity-25">
+                <div class="small">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Harga Jual Agunan:</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.harga_jual|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Uang Muka (DP):</span>
+                    <span class="fw-bold">Rp {{ result.analisis_kredit.uang_muka|floatformat:0|intcomma|default:"0" }} ({{ result.analisis_kredit.dp_percent|floatformat:1 }}%)</span>
+                  </div>
+                  <div class="d-flex justify-content-between border-top pt-1 mb-1">
+                    <span class="text-muted">Nilai KPR (Plafon):</span>
+                    <span class="fw-bold text-primary">Rp {{ result.analisis_kredit.nilai_kpr|floatformat:0|intcomma|default:"0" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between text-dark pt-1 border-top">
+                    <span class="fw-semibold">LTV Ratio:</span>
+                    <span class="fw-bold">{{ result.analisis_kredit.ltv_ratio|floatformat:2 }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
       <!-- Ringkasan Informasi Finansial (Stat Cards) -->
+
       <div class="row g-3 mb-4 mx-0">
         <!-- Card Nama Nasabah -->
         <div class="col-md-4">
@@ -634,6 +820,49 @@ document.addEventListener("DOMContentLoaded", function () {
 </div>
 
 <script>
+  // Format Rupiah & Perhitungan Real-Time Nilai KPR
+  function formatRupiah(number) {
+    if (isNaN(number) || number === null || number <= 0) return "";
+    return Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function parseNumber(str) {
+    if (!str) return 0;
+    const cleaned = str.toString().replace(/[^0-9]/g, "");
+    return parseFloat(cleaned) || 0;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const hargaJualInput = document.getElementById("harga_jual");
+    const uangMukaInput = document.getElementById("uang_muka");
+    const nilaiKprDisplay = document.getElementById("nilai_kpr_display");
+
+    function updateLiveKpr() {
+      if (!hargaJualInput || !uangMukaInput || !nilaiKprDisplay) return;
+      const hj = parseNumber(hargaJualInput.value);
+      const dp = parseNumber(uangMukaInput.value);
+      const kpr = Math.max(0, hj - dp);
+      nilaiKprDisplay.value = kpr > 0 ? formatRupiah(kpr) : "";
+    }
+
+    const rupiahInputs = document.querySelectorAll(".rupiah-input");
+    rupiahInputs.forEach(input => {
+      // Format nilai awal dari server (jika ada)
+      if (input.value) {
+        const num = parseNumber(input.value);
+        if (num > 0) input.value = formatRupiah(num);
+      }
+
+      input.addEventListener("input", function (e) {
+        const num = parseNumber(e.target.value);
+        e.target.value = num > 0 ? formatRupiah(num) : "";
+        updateLiveKpr();
+      });
+    });
+
+    updateLiveKpr();
+  });
+
   const form = document.getElementById("loan-form");
   const submitBtn = document.getElementById("submit-btn");
   const spinner = document.getElementById("spinner");
