@@ -955,13 +955,13 @@ def calculate_credit_analysis(
         persentase_gaji = 35.0
         label_pekerjaan = "Pegawai Kontrak (35%)"
     elif status_clean == "pengusaha":
-        persentase_gaji = 50.0
-        label_pekerjaan = "Pengusaha (50%)"
+        persentase_gaji = 35.0
+        label_pekerjaan = "Pengusaha (35%)"
     else:
-        persentase_gaji = 50.0
-        label_pekerjaan = "Pegawai Tetap (50%)"
+        persentase_gaji = 55.0
+        label_pekerjaan = "Pegawai Tetap (55%)"
 
-    # 1. Gaji yang diakui = Penghasilan * Persentase (50% / 35%)
+    # 1. Gaji yang diakui = Penghasilan * Persentase (55% / 35%)
     gaji_diakui = penghasilan_bersih * (persentase_gaji / 100.0)
     
     # 2. Kapasitas Bulanan = Gaji Diakui - Total Hutang SLIK

@@ -217,3 +217,4 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 >>>>>>> 673c69e11900a09ff76cf104893fa764af2cda4c
+.vercel

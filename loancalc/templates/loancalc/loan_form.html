@@ -344,9 +344,9 @@ document.addEventListener("DOMContentLoaded", function () {
               <div class="col-md-3">
                 <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
                 <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm shadow-sm">
-                  <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (50% Gaji Diakui)</option>
+                  <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (55% Gaji Diakui)</option>
                   <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
-                  <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (50% Gaji Diakui)</option>
+                  <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (35% Gaji Diakui)</option>
                 </select>
                 <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
               </div>
