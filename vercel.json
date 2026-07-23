@@ -1,12 +1,19 @@
 {
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/static/(.*)",
-      "destination": "/static/$1"
+      "src": "loan_project/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index"
+      "src": "/(.*)",
+      "dest": "loan_project/wsgi.py"
     }
   ]
 }
