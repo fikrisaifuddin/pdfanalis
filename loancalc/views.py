@@ -23,7 +23,6 @@ def parse_float_input(val, default=0.0) -> float:
         return default
 
 def parse_percent_input(val, default=0.0) -> float:
-    """Khusus field persentase (suku bunga dll) — jangan hapus titik desimal."""
     if not val:
         return default
     try:

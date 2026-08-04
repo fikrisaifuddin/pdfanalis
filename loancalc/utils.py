@@ -575,8 +575,6 @@ def clean_entity_text(raw: str) -> str:
 LEGAL_PREFIXES = {"pt", "cv", "tbk", "persero", "ltd", "corp", "inc"}
 
 def _strip_leaves_meaningful_name(cleaned_bank: str) -> bool:
-    """True jika setelah strip, bank masih punya kata bermakna
-    (bukan cuma kode angka + prefix badan hukum seperti 'PT'/'CV')."""
     words = re.findall(r"[A-Za-z]+", cleaned_bank.lower())
     meaningful = [w for w in words if w not in LEGAL_PREFIXES]
     return len(meaningful) > 0
