@@ -22,6 +22,19 @@ def parse_float_input(val, default=0.0) -> float:
     except Exception:
         return default
 
+def parse_percent_input(val, default=0.0) -> float:
+    """Khusus field persentase (suku bunga dll) — jangan hapus titik desimal."""
+    if not val:
+        return default
+    try:
+        cleaned = str(val).strip().replace("%", "").replace(" ", "")
+        if "," in cleaned and "." not in cleaned:
+            cleaned = cleaned.replace(",", ".")
+        elif "," in cleaned and "." in cleaned:
+            cleaned = cleaned.replace(",", "")
+        return float(cleaned)
+    except Exception:
+        return default
 
 def loan_calc_view(request: HttpRequest) -> HttpResponse:
     result = None
@@ -46,8 +59,8 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     penghasilan_bersih = parse_float_input(penghasilan_bersih_raw, 0.0)
     harga_jual = parse_float_input(harga_jual_raw, 0.0)
     uang_muka = parse_float_input(uang_muka_raw, 0.0)
-    suku_bunga = parse_float_input(suku_bunga_raw, 7.5)
-    bunga_floating = parse_float_input(bunga_floating_raw, 12.0)
+    suku_bunga = parse_percent_input(suku_bunga_raw, 7.5)
+    bunga_floating = parse_percent_input(bunga_floating_raw, 12.0)
     try:
         tenor_tahun = int(tenor_tahun_raw)
     except Exception:
@@ -230,4 +243,4 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
         ),
     }
 
-    return render(request, "loancalc/loan_form.html", context)
+    return render(request, "loancalc/loan_form.html", context)

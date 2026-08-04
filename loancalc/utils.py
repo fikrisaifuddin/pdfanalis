@@ -572,6 +572,14 @@ def clean_entity_text(raw: str) -> str:
     cleaned = " ".join(cleaned.strip().split())
     return cleaned
 
+LEGAL_PREFIXES = {"pt", "cv", "tbk", "persero", "ltd", "corp", "inc"}
+
+def _strip_leaves_meaningful_name(cleaned_bank: str) -> bool:
+    """True jika setelah strip, bank masih punya kata bermakna
+    (bukan cuma kode angka + prefix badan hukum seperti 'PT'/'CV')."""
+    words = re.findall(r"[A-Za-z]+", cleaned_bank.lower())
+    meaningful = [w for w in words if w not in LEGAL_PREFIXES]
+    return len(meaningful) > 0
 
 def disambiguate_bank_and_branch(bank_raw: str, cabang_raw: str) -> Tuple[str, str]:
     bank = bank_raw or "TIDAK DITEMUKAN"
@@ -586,7 +594,7 @@ def disambiguate_bank_and_branch(bank_raw: str, cabang_raw: str) -> Tuple[str, s
     if cabang_norm and cabang_norm in bank_norm and bank_norm != cabang_norm:
         pattern = re.escape(cabang.strip())
         cleaned_bank = re.sub(pattern, "", bank, flags=re.IGNORECASE).strip()
-        if cleaned_bank:
+        if cleaned_bank and _strip_leaves_meaningful_name(cleaned_bank):
             bank = cleaned_bank
 
     if bank.strip().lower() == cabang.strip().lower():
@@ -1011,11 +1019,17 @@ def calculate_credit_analysis(
     elif selisih_plafon >= 0 and selisih_angsuran >= 0:
         kapasitas_status = "MEMENUHI (LAYAK)"
         kapasitas_badge = "success"
-        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) mencukupi untuk Plafon KPR yang diminta (Rp {nilai_kpr:,.0f})."
+        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan kapasitas angsuran bulanan mencukupi."
     else:
         kapasitas_status = "DEFISIT (TIDAK MEMENUHI)"
         kapasitas_badge = "danger"
-        kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f})."
+        
+        if selisih_plafon < 0 and selisih_angsuran < 0:
+            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran bulanan melebihi kapasitas bayar."
+        elif selisih_plafon < 0:
+            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f})."
+        else:
+            kapasitas_desc = f"Estimasi angsuran bulanan (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas bayar bulanan (Rp {kapasitas_bulanan:,.0f})."
 
     # --- Evaluasi 3: Kolateral ---
     if harga_jual <= 0:
@@ -1031,7 +1045,14 @@ def calculate_credit_analysis(
         kolateral_badge = "warning"
         kolateral_desc = f"LTV Ratio sebesar {ltv_ratio:.2f}% (DP {dp_percent:.2f}%). Uang muka disarankan minimal 15-20%."
 
-    is_layak = (problem_facilities_count == 0) and (selisih_plafon >= 0) and (ltv_ratio <= 85.0) and (penghasilan_bersih > 0) and (harga_jual > 0)
+    is_layak = (
+        (problem_facilities_count == 0) and 
+        (selisih_plafon >= 0) and 
+        (selisih_angsuran >= 0) and
+        (ltv_ratio <= 85.0) and 
+        (penghasilan_bersih > 0) and 
+        (harga_jual > 0)
+    )
 
     return {
         "status_pekerjaan": status_clean,
@@ -1072,4 +1093,4 @@ def calculate_credit_analysis(
         },
         "is_layak": is_layak,
     }
-
+
