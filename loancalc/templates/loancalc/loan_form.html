@@ -161,29 +161,40 @@
   .btn-filter-toggle {
     /* placeholder, tidak dipakai - lihat aturan di bawah */
   }
-  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"] {
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"],
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"] {
     border-color: #0d6efd !important;
     color: #0d6efd !important;
     background-color: transparent !important;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
   button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"]:hover,
-  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"]:focus {
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"]:focus,
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"]:hover,
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"]:focus {
     background-color: #0d6efd !important;
     color: #ffffff !important;
   }
-  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"] {
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"],
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"][aria-expanded="true"] {
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
     color: #ffffff !important;
   }
-  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"] i {
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"][aria-expanded="true"] i,
+  button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"][aria-expanded="true"] i {
     color: #ffffff !important;
   }
   @media (max-width: 576px) {
-    button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"] {
+    button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"],
+    button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"] {
       font-size: 0.8rem !important;
       padding: 0.35rem 0.7rem !important;
+    }
+    /* Di mobile, samakan lebar kedua tombol (Parameter KPR & Filter) jadi full-width */
+    .btn-toggle-kpr-filter {
+      width: 100%;
+      text-align: left;
     }
   }
 
@@ -332,82 +343,93 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
         </div>
 
-        <!-- Parameter Analisis Kredit / KPR berdasarkan Pendapatan -->
-        <div class="col-12">
-          <div class="p-3 border rounded-3 bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-calculator-fill me-1"></i> Parameter Analisis KPR &amp; Pendapatan Nasabah</h6>
-              <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 small">Hitung Kapasitas &amp; Agunan</span>
-            </div>
-            
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
-                <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm shadow-sm">
-                  <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (55% Gaji Diakui)</option>
-                  <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
-                  <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (35% Gaji Diakui)</option>
-                </select>
-                <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
-              </div>
-              <div class="col-md-3">
-                <label for="penghasilan_bersih" class="form-label fw-bold text-secondary small mb-1">Penghasilan Bersih / Bulan (Rp)</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-white">Rp</span>
-                  <input type="text" name="penghasilan_bersih" id="penghasilan_bersih" value="{{ penghasilan_bersih|default:'' }}" placeholder="Contoh: 15.000.000" class="form-control rupiah-input shadow-sm">
-                </div>
-              </div>
-              <div class="col-md-3">
-                <label for="harga_jual" class="form-label fw-bold text-secondary small mb-1">Harga Jual Agunan (Rp)</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-white">Rp</span>
-                  <input type="text" name="harga_jual" id="harga_jual" value="{{ harga_jual|default:'' }}" placeholder="Contoh: 500.000.000" class="form-control rupiah-input shadow-sm">
-                </div>
-              </div>
-              <div class="col-md-3">
-                <label for="uang_muka" class="form-label fw-bold text-secondary small mb-1">Uang Muka / DP (Rp)</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-white">Rp</span>
-                  <input type="text" name="uang_muka" id="uang_muka" value="{{ uang_muka|default:'' }}" placeholder="Contoh: 100.000.000" class="form-control rupiah-input shadow-sm">
-                </div>
-              </div>
+        <!-- Tombol Pemicu: Parameter Analisis KPR (lebar disamakan dgn tombol Filter di bawah) -->
+        <div class="col-12 text-start">
+          <button class="btn btn-outline-primary btn-sm fw-semibold shadow-sm px-3 btn-toggle-kpr-filter"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseKpr"
+                  aria-expanded="{% if penghasilan_bersih or harga_jual or uang_muka %}true{% else %}false{% endif %}"
+                  aria-controls="collapseKpr">
+            <i class="bi bi-calculator-fill me-1"></i> Parameter Analisis KPR &amp; Pendapatan Nasabah
+          </button>
+        </div>
 
-              <div class="col-md-3">
-                <label for="bunga_floating" class="form-label fw-bold text-secondary small mb-1">Bunga Floating (% p.a.)</label>
-                <div class="input-group input-group-sm">
-                  <input type="number" step="0.01" name="bunga_floating" id="bunga_floating" value="{{ bunga_floating|default:'12.0' }}" placeholder="12.0" class="form-control shadow-sm">
-                  <span class="input-group-text bg-white">%</span>
-                </div>
-                <div class="form-text hint-muted">Suku bunga floating untuk hitung plafon max.</div>
-              </div>
-              <div class="col-md-3">
-                <label for="suku_bunga" class="form-label fw-bold text-secondary small mb-1">Bunga KPR Fixed (% p.a.)</label>
-                <div class="input-group input-group-sm">
-                  <input type="number" step="0.01" name="suku_bunga" id="suku_bunga" value="{{ suku_bunga|default:'7.5' }}" placeholder="7.5" class="form-control shadow-sm">
-                  <span class="input-group-text bg-white">%</span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <label for="tenor_tahun" class="form-label fw-bold text-secondary small mb-1">Tenor (Tahun)</label>
-                <div class="input-group input-group-sm">
-                  <input type="number" name="tenor_tahun" id="tenor_tahun" value="{{ tenor_tahun|default:'15' }}" placeholder="15" class="form-control shadow-sm">
-                  <span class="input-group-text bg-white">Tahun</span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <label for="nilai_kpr_display" class="form-label fw-bold text-secondary small mb-1">Nilai KPR (Diminta)</label>
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-light-subtle">Rp</span>
-                  <input type="text" id="nilai_kpr_display" readonly class="form-control bg-light-subtle fw-bold text-primary shadow-sm" placeholder="Otomatis (Harga - DP)">
+        <!-- Parameter Analisis Kredit / KPR berdasarkan Pendapatan (collapsible) -->
+        <div class="collapse {% if penghasilan_bersih or harga_jual or uang_muka %}show{% endif %}" id="collapseKpr">
+          <div class="row g-3 pt-2">
+            <div class="col-12">
+              <div class="p-3 border rounded-3 bg-light-subtle">
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
+                    <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm">
+                      <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (55% Gaji Diakui)</option>
+                      <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
+                      <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (35% Gaji Diakui)</option>
+                    </select>
+                    <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="penghasilan_bersih" class="form-label fw-bold text-secondary small mb-1">Penghasilan Bersih / Bulan (Rp)</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white">Rp</span>
+                      <input type="text" name="penghasilan_bersih" id="penghasilan_bersih" value="{{ penghasilan_bersih|default:'' }}" placeholder="Contoh: 15.000.000" class="form-control rupiah-input">
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="harga_jual" class="form-label fw-bold text-secondary small mb-1">Harga Jual Agunan (Rp)</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white">Rp</span>
+                      <input type="text" name="harga_jual" id="harga_jual" value="{{ harga_jual|default:'' }}" placeholder="Contoh: 500.000.000" class="form-control rupiah-input">
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="uang_muka" class="form-label fw-bold text-secondary small mb-1">Uang Muka / DP (Rp)</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white">Rp</span>
+                      <input type="text" name="uang_muka" id="uang_muka" value="{{ uang_muka|default:'' }}" placeholder="Contoh: 100.000.000" class="form-control rupiah-input">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <label for="bunga_floating" class="form-label fw-bold text-secondary small mb-1">Bunga Floating (% p.a.)</label>
+                    <div class="input-group input-group-sm">
+                      <input type="number" step="0.01" name="bunga_floating" id="bunga_floating" value="{{ bunga_floating|default:'12.0' }}" placeholder="12.0" class="form-control">
+                      <span class="input-group-text bg-white">%</span>
+                    </div>
+                    <div class="form-text hint-muted">Suku bunga floating untuk hitung plafon max.</div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="suku_bunga" class="form-label fw-bold text-secondary small mb-1">Bunga KPR Fixed (% p.a.)</label>
+                    <div class="input-group input-group-sm">
+                      <input type="number" step="0.01" name="suku_bunga" id="suku_bunga" value="{{ suku_bunga|default:'7.5' }}" placeholder="7.5" class="form-control">
+                      <span class="input-group-text bg-white">%</span>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="tenor_tahun" class="form-label fw-bold text-secondary small mb-1">Tenor (Tahun)</label>
+                    <div class="input-group input-group-sm">
+                      <input type="number" name="tenor_tahun" id="tenor_tahun" value="{{ tenor_tahun|default:'15' }}" placeholder="15" class="form-control">
+                      <span class="input-group-text bg-white">Tahun</span>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="nilai_kpr_display" class="form-label fw-bold text-secondary small mb-1">Nilai KPR (Diminta)</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light-subtle">Rp</span>
+                      <input type="text" id="nilai_kpr_display" readonly class="form-control bg-light-subtle fw-bold text-primary" placeholder="Otomatis (Harga - DP)">
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Tombol Pemicu Menu Filter Pengecualian (background & teks berubah otomatis saat aktif via CSS) -->
+        <!-- Tombol Pemicu Menu Filter Pengecualian: ditaruh setelah isi Parameter KPR -->
         <div class="col-12 text-start">
-          <button class="btn btn-outline-primary btn-sm fw-semibold shadow-sm px-3" 
+          <button class="btn btn-outline-primary btn-sm fw-semibold shadow-sm px-3 btn-toggle-kpr-filter" 
                   type="button" 
                   data-bs-toggle="collapse" 
                   data-bs-target="#collapseFilters" 
@@ -885,4 +907,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 </script>
-{% endblock %} 
+{% endblock %}
