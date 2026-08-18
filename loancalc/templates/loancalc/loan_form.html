@@ -219,21 +219,156 @@
 <script>
 // Disimpan di scope global supaya bisa dipanggil ulang lewat tombol "Lihat Kualitas Bermasalah"
 let problemFacilities = [];
+let currentFilterMode = "6bulan"; // default: "6bulan" | "all"
 
-function buildProblemFacilitiesHtml(list) {
-    let html = "";
-    list.forEach(function (f, i) {
+// Mapping bulan singkatan (format hasil ekstraksi: "Mei 24", "Agt 25", dst)
+const BULAN_MAP = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "mei": 5, "jun": 6,
+    "jul": 7, "agt": 8, "sep": 9, "okt": 10, "nov": 11, "des": 12
+};
+
+// Parse "Mei 24 - 82 hari" -> {month: 5, year: 2024, hari: "82"} atau null kalau gagal
+function parseBulanTahun(bulanTahunStr) {
+    if (!bulanTahunStr || bulanTahunStr === "TIDAK DITEMUKAN") return null;
+    const match = bulanTahunStr.match(/^([A-Za-z]+)\s+(\d{2})\s*-\s*(\d+)\s*hari/i);
+    if (!match) return null;
+    const bulanKey = match[1].toLowerCase();
+    const bulanNum = BULAN_MAP[bulanKey];
+    if (!bulanNum) return null;
+    const year = 2000 + parseInt(match[2], 10);
+    return { month: bulanNum, year: year, hari: match[3] };
+}
+
+// True kalau bulan_tahun fasilitas ini masih dalam window 6 bulan terakhir dari sekarang
+function isWithinLast6Months(bulanTahunStr) {
+    const parsed = parseBulanTahun(bulanTahunStr);
+    if (!parsed) return null; // null = tidak bisa ditentukan (data histori tidak tersedia)
+
+    const now = new Date();
+    const nowTotal = now.getFullYear() * 12 + (now.getMonth() + 1);
+    const itemTotal = parsed.year * 12 + parsed.month;
+    const diff = nowTotal - itemTotal;
+
+    // diff 0..5 = masih dalam 6 bulan terakhir (inklusif bulan berjalan)
+    return diff >= 0 && diff <= 5;
+}
+
+function getFilteredFacilities(mode) {
+    if (mode === "all") return problemFacilities;
+
+    // mode "6bulan": tampilkan yang within 6 bulan ATAU yang datanya tidak bisa ditentukan
+    return problemFacilities.filter(function (f) {
+        const within = isWithinLast6Months(f.bulan_tahun);
+        return within === true || within === null;
+    });
+}
+
+// Warna badge kualitas berdasarkan digit pertama (2=kuning, 3-5=merah)
+function getKualitasBadgeStyle(kualitasStr) {
+    const m = (kualitasStr || "").trim().match(/^(\d)/);
+    const num = m ? m[1] : null;
+    if (num === "2") {
+        return { bg: "#fff8e1", color: "#997404", border: "#ffe69c" };
+    }
+    if (num === "3" || num === "4" || num === "5") {
+        return { bg: "#f8d7da", color: "#842029", border: "#f1aeb5" };
+    }
+    return { bg: "#e2e3e5", color: "#41464b", border: "#d3d6d8" };
+}
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function buildEmptyState(mode) {
+    const subtitle = mode === "6bulan"
+        ? "Tidak ada fasilitas bermasalah dalam 6 bulan terakhir."
+        : "Tidak ada fasilitas bermasalah yang ditemukan.";
+    return `
+        <div style="text-align:center; padding:36px 12px;">
+            <div style="width:56px; height:56px; margin:0 auto 14px; border-radius:50%; background:#e7f5ec; display:flex; align-items:center; justify-content:center;">
+                <i class="bi bi-check2-circle" style="font-size:28px; color:#2f9e5b;"></i>
+            </div>
+            <div style="font-weight:600; color:#343a40; font-size:0.95rem; margin-bottom:4px;">Tidak ada masalah</div>
+            <div style="color:#868e96; font-size:0.82rem;">${subtitle}</div>
+        </div>
+    `;
+}
+
+function buildProblemFacilitiesHtml(list, mode) {
+    if (!list || list.length === 0) {
+        return buildEmptyState(mode);
+    }
+
+    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    list.forEach(function (f) {
+        const within = isWithinLast6Months(f.bulan_tahun);
+        const badgeStyle = getKualitasBadgeStyle(f.kualitas);
+
+        let bulanTahunDisplay = `<span style="color:#495057;">${escapeHtml(f.bulan_tahun || "TIDAK DITEMUKAN")}</span>`;
+        if (within === null) {
+            bulanTahunDisplay = `<span style="color:#adb5bd; font-style:italic;">Data histori tidak tersedia</span>`;
+        }
+
         html += `
-            <div style="text-align:left; margin-bottom:12px; padding-bottom:8px; ${i < list.length - 1 ? 'border-bottom:1px solid #eee;' : ''}">
-                <b>Pelapor:</b> ${f.pelapor}<br/>
-                <b>Cabang:</b> ${f.cabang}<br/>
-                <b>Tanggal Update:</b> ${f.tanggal_update}<br/>
-                <b>Bulan/Tahun:</b> ${f.bulan_tahun}<br/>
-                <b>Kualitas:</b> ${f.kualitas}
+            <div style="text-align:left; border:1px solid #e9ecef; border-radius:10px; padding:12px 14px; background:#ffffff;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;">
+                    <div style="font-weight:600; color:#212529; font-size:0.92rem; line-height:1.3;">
+                        <i class="bi bi-bank" style="color:#6c757d; margin-right:5px;"></i>${escapeHtml(f.pelapor)}
+                    </div>
+                    <span style="flex-shrink:0; font-size:0.72rem; font-weight:600; padding:3px 9px; border-radius:999px; background:${badgeStyle.bg}; color:${badgeStyle.color}; border:1px solid ${badgeStyle.border}; white-space:nowrap;">
+                        ${escapeHtml(f.kualitas)}
+                    </span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:0.8rem;">
+                    <div>
+                        <div style="color:#adb5bd; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:1px;">Cabang</div>
+                        <div style="color:#495057;">${escapeHtml(f.cabang)}</div>
+                    </div>
+                    <div>
+                        <div style="color:#adb5bd; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:1px;">Tanggal Update</div>
+                        <div style="color:#495057;">${escapeHtml(f.tanggal_update)}</div>
+                    </div>
+                    <div style="grid-column:1 / -1;">
+                        <div style="color:#adb5bd; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:1px;">Terakhir Bermasalah</div>
+                        <div>${bulanTahunDisplay}</div>
+                    </div>
+                </div>
             </div>
         `;
     });
+    html += `</div>`;
     return html;
+}
+
+function renderPopupBody(mode) {
+    currentFilterMode = mode;
+    const filtered = getFilteredFacilities(mode);
+
+    return `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px;">
+            <select id="problem-filter-select" onchange="switchFilterMode(this.value)"
+                style="font-size:0.85rem; padding:6px 30px 6px 12px; border-radius:8px; border:1px solid #ced4da; background-color:#fff; color:#212529; font-weight:500; cursor:pointer; appearance:auto;">
+                <option value="6bulan" ${mode === "6bulan" ? "selected" : ""}>6 Bulan Terakhir</option>
+                <option value="all" ${mode === "all" ? "selected" : ""}>Semua (All)</option>
+            </select>
+            <span style="font-size:0.78rem; color:#868e96; font-weight:600; text-transform:uppercase; letter-spacing:0.4px;">
+                ${filtered.length} Fasilitas
+            </span>
+        </div>
+        <div style="max-height:320px; overflow-y:auto; padding-right:2px;">${buildProblemFacilitiesHtml(filtered, mode)}</div>
+    `;
+}
+
+// Dipanggil dari dropdown filter di dalam popup, update isi tanpa nutup Swal
+function switchFilterMode(mode) {
+    Swal.update({
+        html: renderPopupBody(mode),
+    });
 }
 
 function showProblemFacilitiesPopup() {
@@ -242,8 +377,17 @@ function showProblemFacilitiesPopup() {
     Swal.fire({
         icon: "warning",
         title: "Kualitas Bermasalah Ditemukan",
-        html: `<div style="max-height:300px; overflow-y:auto;">${buildProblemFacilitiesHtml(problemFacilities)}</div>`,
+        html: renderPopupBody("6bulan"), // default selalu buka di mode 6 bulan
         confirmButtonText: "Mengerti",
+        confirmButtonColor: "#0d6efd",
+        width: 480,
+        customClass: {
+            popup: "rounded-4",
+        },
+        didOpen: () => {
+            // reset mode default setiap kali popup dibuka ulang
+            currentFilterMode = "6bulan";
+        },
     });
 }
 
@@ -269,8 +413,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (problemFacilities && problemFacilities.length > 0) {
         console.log("Showing SweetAlert with", problemFacilities.length, "problems");
 
-        // Tombol "Lihat Kualitas Bermasalah" muncul & diisi jumlahnya,
-        // supaya popup yang sudah di-close bisa dibuka lagi kapan saja.
+        // Badge jumlah di tombol tetap pakai total ALL (bukan yang sudah difilter),
+        // supaya user tahu total keseluruhan sebelum buka popup.
         if (showBtn && countBadge) {
             countBadge.textContent = problemFacilities.length;
             showBtn.classList.remove("d-none");
