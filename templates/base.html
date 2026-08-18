@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
 
   <style>
-    :root {
+     :root {
       --sidebar-width: 260px;
       --sidebar-width-collapsed: 78px;
       --topbar-height: 64px;
@@ -252,9 +252,9 @@
         <span>Kalkulator Hutang</span>
       </a>
 
-      <a href="#" class="nav-link" title="Riwayat">
-        <i class="bi bi-clock-history"></i>
-        <span>Riwayat</span>
+      <a href="{% url 'buktisurvei:index' %}" class="nav-link" title="Bukti Survei">
+        <i class="bi bi-camera-fill"></i>
+        <span>Bukti Survei</span>
       </a>
 
       <a href="#" class="nav-link" title="Laporan">

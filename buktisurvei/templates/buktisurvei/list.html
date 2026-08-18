@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h4 class="mb-3">Bukti Survei</h4>
+
+<div id="cameraStage" class="camera-card">
+  <div class="camera-badge"><i class="bi bi-record-circle-fill"></i> Live</div>
+  <div class="camera-frame-wrap bg-dark">
+    <video id="videoPreview" autoplay playsinline muted></video>
+  </div>
+
+  <div id="permissionAlert" class="alert alert-warning d-none mt-3" role="alert">
+    Kamera atau lokasi belum diizinkan. Izinkan lewat pop-up browser, atau buka pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".
+    <div class="mt-2">
+      <button type="button" class="btn btn-sm btn-warning" id="retryPermissionBtn">Coba Lagi</button>
+    </div>
+  </div>
+
+  <input type="text" id="keteranganInput" class="form-control camera-input mt-3" placeholder="Keterangan (opsional)">
+
+  <button type="button" id="captureBtn" class="btn btn-capture mt-3" disabled>
+    <i class="bi bi-camera-fill"></i> <span id="captureBtnText">Ambil Foto</span>
+  </button>
+</div>
+
+<div id="previewStage" class="camera-card d-none">
+  <canvas id="photoCanvas" class="camera-frame w-100"></canvas>
+  <div class="d-flex gap-2 flex-wrap mt-3">
+    <button type="button" id="retakeBtn" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-counterclockwise"></i> Ulangi
+    </button>
+    <button type="button" id="downloadBtn" class="btn btn-outline-primary">
+      <i class="bi bi-download"></i> Unduh ke Galeri
+    </button>
+    <button type="button" id="saveBtn" class="btn btn-capture">
+      <i class="bi bi-cloud-arrow-up-fill"></i> Simpan
+    </button>
+  </div>
+</div>
+
+<hr class="my-4">
+
+<h6 class="text-muted mb-3">Riwayat Bukti Survei</h6>
+<div class="row g-3">
+  {% for f in daftar %}
+  <div class="col-6 col-md-3">
+    <div class="foto-card">
+      <img src="{{ f.foto.url }}" class="foto-img">
+      <div class="foto-actions">
+        <a href="{{ f.foto.url }}" download class="foto-icon-btn" title="Unduh">
+          <i class="bi bi-download"></i>
+        </a>
+        <form method="post" action="{% url 'buktisurvei:hapus' f.pk %}"
+              onsubmit="return confirm('Hapus foto ini?');" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="foto-icon-btn foto-icon-danger" title="Hapus">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </form>
+      </div>
+      <div class="foto-overlay">
+        {{ f.diambil_pada|date:"d M Y, H:i" }}
+        {% if f.keterangan %}<br><span class="foto-ket">{{ f.keterangan }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">Belum ada bukti survei.</p>
+  {% endfor %}
+</div>
+
+<form id="uploadForm" method="post" enctype="multipart/form-data" class="d-none">
+  {% csrf_token %}
+  <input type="file" name="foto" id="fotoInput">
+  <input type="text" name="keterangan" id="keteranganHidden">
+</form>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .camera-card {
+    max-width: 480px;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 18px rgba(13, 38, 76, 0.12);
+    padding: 1rem;
+    position: relative;
+  }
+
+  /* Wrapper preview kamera: adaptif portrait (HP) maupun landscape (laptop/webcam) */
+  .camera-frame-wrap {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    max-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-frame-wrap video {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    display: block;
+    object-fit: contain;
+  }
+
+  .camera-frame {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    max-height: 70vh;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .camera-badge {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 2;
+    background: rgba(220, 53, 69, 0.9);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+  .camera-input { border-radius: 0.6rem; }
+  .btn-capture {
+    background: linear-gradient(135deg, var(--blue-1), var(--blue-dark));
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.4rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
+  }
+  .btn-capture:hover { color: #fff; opacity: 0.92; }
+  .btn-capture:disabled { opacity: 0.5; }
+
+  .foto-card {
+    position: relative;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(13, 38, 76, 0.1);
+    background: #000;
+  }
+  .foto-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .foto-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+    color: #fff; font-size: 0.72rem; padding: 0.5rem 0.6rem 0.4rem;
+  }
+  .foto-ket { opacity: 0.85; }
+  .foto-actions {
+    position: absolute; top: 0.4rem; right: 0.4rem;
+    display: flex; gap: 0.3rem; z-index: 2;
+  }
+  .foto-icon-btn {
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.85);
+    color: var(--blue-1);
+    border: none; border-radius: 50%;
+    font-size: 0.85rem;
+  }
+  .foto-icon-danger { color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const video = document.getElementById('videoPreview');
+  const captureBtn = document.getElementById('captureBtn');
+  const captureBtnText = document.getElementById('captureBtnText');
+  const retakeBtn = document.getElementById('retakeBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const canvas = document.getElementById('photoCanvas');
+  const ctx = canvas.getContext('2d');
+  const cameraStage = document.getElementById('cameraStage');
+  const previewStage = document.getElementById('previewStage');
+  const permissionAlert = document.getElementById('permissionAlert');
+  const retryBtn = document.getElementById('retryPermissionBtn');
+  const keteranganInput = document.getElementById('keteranganInput');
+  const uploadForm = document.getElementById('uploadForm');
+  const fotoInput = document.getElementById('fotoInput');
+  const keteranganHidden = document.getElementById('keteranganHidden');
+
+  const logoUrl = "{% static 'images/logo_btn_blue.png' %}";
+  const logoImg = new Image();
+  logoImg.src = logoUrl;
+
+  const BLUE_ACCENT = '#4da3ff';
+
+  let currentStream = null;
+  let lastCoords = null;
+  let lastBlob = null;
+
+  function startCamera() {
+    permissionAlert.classList.add('d-none');
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1080 },
+        height: { ideal: 1920 }
+      },
+      audio: false
+    })
+      .then(function (stream) {
+        currentStream = stream;
+        video.srcObject = stream;
+        captureBtn.disabled = false;
+      })
+      .catch(showPermissionError);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.watchPosition(
+        function (pos) { lastCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+        showPermissionError,
+        { enableHighAccuracy: true }
+      );
+    } else {
+      showPermissionError();
+    }
+  }
+
+  function showPermissionError() {
+    permissionAlert.classList.remove('d-none');
+    captureBtn.disabled = true;
+  }
+
+  retryBtn.addEventListener('click', startCamera);
+
+  // Susun alamat detail dari bagian-bagian address Nominatim (bukan cuma display_name generik)
+  function buildDetailedAddress(data) {
+    const a = data.address || {};
+    const parts = [];
+
+    // Nama tempat/komplek/gedung (kalau OSM punya datanya)
+    const namaTempat = (data.namedetails && data.namedetails.name)
+      ? data.namedetails.name
+      : (a.building || a.residential || a.neighbourhood || null);
+    if (namaTempat) parts.push(namaTempat);
+
+    // Jalan + nomor rumah
+    let jalan = '';
+    if (a.road) jalan += a.road;
+    if (a.house_number) jalan += (jalan ? ' No.' : 'No.') + a.house_number;
+    if (jalan) parts.push(jalan);
+
+    // RT/RW / lingkungan kalau ada
+    if (a.suburb && a.suburb !== namaTempat) parts.push(a.suburb);
+    if (a.village && a.village !== a.suburb) parts.push(a.village);
+
+    // Kecamatan
+    if (a.city_district) parts.push('Kec. ' + a.city_district);
+    else if (a.county) parts.push(a.county);
+
+    // Kota/Kabupaten
+    if (a.city) parts.push(a.city);
+    else if (a.town) parts.push(a.town);
+
+    // Provinsi
+    if (a.state) parts.push(a.state);
+
+    // Kode pos
+    if (a.postcode) parts.push(a.postcode);
+
+    const hasil = parts.filter(Boolean).join(', ');
+    return hasil || data.display_name || '';
+  }
+
+  async function reverseGeocode(lat, lng) {
+    try {
+      const res = await fetch(
+        'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng +
+        '&zoom=18&addressdetails=1&namedetails=1&accept-language=id'
+      );
+      const data = await res.json();
+      return buildDetailedAddress(data);
+    } catch (e) {
+      return lat.toFixed(6) + ', ' + lng.toFixed(6);
+    }
+  }
+
+  function generateKodeFoto() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let out = '';
+    for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function wrapText(ctx, text, x, startY, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let y = startY;
+    let lines = 0;
+    for (let i = 0; i < words.length; i++) {
+      const test = line + words[i] + ' ';
+      if (ctx.measureText(test).width > maxWidth && line !== '') {
+        ctx.fillText(line.trim(), x, y);
+        line = words[i] + ' ';
+        y += lineHeight;
+        lines++;
+      } else {
+        line = test;
+      }
+    }
+    ctx.fillText(line.trim(), x, y);
+    lines++;
+    return lines;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  captureBtn.addEventListener('click', async function () {
+    if (!lastCoords) {
+      alert('Lokasi belum terdeteksi, tunggu sebentar lalu coba lagi.');
+      return;
+    }
+
+    captureBtn.disabled = true;
+    captureBtnText.textContent = 'Mendapatkan lokasi...';
+
+    const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
+    const kodeFoto = generateKodeFoto();
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const now = new Date();
+    const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const tanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
+
+    const W = canvas.width, H = canvas.height;
+    const pad = Math.round(W * 0.045);
+    const baseFont = Math.max(13, Math.round(W * 0.032));
+
+    // ukur tinggi alamat dulu (untuk hitung tinggi bar gradient)
+    ctx.font = baseFont * 0.92 + 'px sans-serif';
+    const addrMaxWidth = W - pad * 2;
+    const words = alamat.split(' ');
+    let testLine = '', addrLines = 1;
+    for (let i = 0; i < words.length; i++) {
+      const t = testLine + words[i] + ' ';
+      if (ctx.measureText(t).width > addrMaxWidth && testLine !== '') { addrLines++; testLine = words[i] + ' '; }
+      else { testLine = t; }
+    }
+
+    const timeFont = baseFont * 2.3;
+    const lineH = baseFont * 1.35;
+    const blockHeight = timeFont * 1.15 + lineH * 2 + lineH * addrLines + lineH * 1.6 + pad;
+    const barTop = H - blockHeight - pad * 0.5;
+
+    // gradient gelap dari bawah
+    const grad = ctx.createLinearGradient(0, barTop, 0, H);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.35, 'rgba(0,0,0,0.55)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, barTop, W, H - barTop);
+
+    let cursorY = H - pad;
+
+    // ===== Kode Foto (paling bawah) =====
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = 'bold ' + (baseFont * 0.8) + 'px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Kode Foto: ' + kodeFoto, pad, cursorY);
+    cursorY -= lineH * 1.6;
+
+    // garis pembatas tipis
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, cursorY + lineH * 0.3);
+    ctx.lineTo(W - pad, cursorY + lineH * 0.3);
+    ctx.stroke();
+
+    // ===== Alamat (wrap) =====
+    ctx.font = baseFont * 0.92 + 'px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    const addrStartY = cursorY - lineH * (addrLines - 1);
+    wrapText(ctx, alamat, pad, addrStartY, addrMaxWidth, lineH);
+    cursorY = addrStartY - lineH * 1.3;
+
+    // ===== Jam besar + divider + tanggal/hari =====
+    ctx.font = 'bold ' + timeFont + 'px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    const timeY = cursorY;
+    ctx.fillText(jamMenit, pad, timeY);
+    const timeWidth = ctx.measureText(jamMenit).width;
+
+    const dividerX = pad + timeWidth + baseFont * 0.6;
+    ctx.strokeStyle = BLUE_ACCENT;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(dividerX, timeY - timeFont * 0.85);
+    ctx.lineTo(dividerX, timeY + timeFont * 0.12);
+    ctx.stroke();
+
+    const textX = dividerX + baseFont * 0.6;
+    ctx.font = baseFont * 0.95 + 'px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(tanggal, textX, timeY - lineH * 0.55);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillText(hari, textX, timeY);
+
+    function drawLogoAndFinish() {
+      const logoW = Math.round(W * 0.2);
+      const logoH = logoImg.naturalHeight ? (logoW * logoImg.naturalHeight / logoImg.naturalWidth) : logoW * 0.4;
+      const lp = 12;
+      ctx.drawImage(logoImg, W - logoW - lp, lp, logoW, logoH);
+
+      // brand text pojok kanan bawah
+      ctx.textAlign = 'right';
+      ctx.font = 'bold ' + (baseFont * 0.85) + 'px sans-serif';
+      ctx.fillStyle = BLUE_ACCENT;
+      ctx.fillText('SLIK OJK', W - pad, H - pad - lineH * 0.55);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = baseFont * 0.8 + 'px sans-serif';
+      ctx.fillText('Loan Calc', W - pad, H - pad);
+      ctx.textAlign = 'left';
+
+      finishCapture();
+    }
+
+    if (logoImg.complete && logoImg.naturalWidth > 0) {
+      drawLogoAndFinish();
+    } else {
+      logoImg.onload = drawLogoAndFinish;
+      logoImg.onerror = finishCapture;
+    }
+  });
+
+  function finishCapture() {
+    cameraStage.classList.add('d-none');
+    previewStage.classList.remove('d-none');
+    if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', 0.92);
+    captureBtn.disabled = false;
+    captureBtnText.textContent = 'Ambil Foto';
+  }
+
+  retakeBtn.addEventListener('click', function () {
+    previewStage.classList.add('d-none');
+    cameraStage.classList.remove('d-none');
+    lastBlob = null;
+    startCamera();
+  });
+
+  downloadBtn.addEventListener('click', function () {
+    if (!lastBlob) return;
+    const url = URL.createObjectURL(lastBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bukti_survei_' + Date.now() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  saveBtn.addEventListener('click', function () {
+    if (!lastBlob) return;
+    const file = new File([lastBlob], 'survei_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fotoInput.files = dt.files;
+    keteranganHidden.value = keteranganInput.value;
+    uploadForm.submit();
+  });
+
+  startCamera();
+})();
+</script>
+{% endblock %}

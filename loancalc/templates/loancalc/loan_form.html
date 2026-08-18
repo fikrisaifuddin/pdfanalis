@@ -848,6 +848,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
+
   function parseNumber(str) {
     if (!str) return 0;
     const cleaned = str.toString().replace(/[^0-9]/g, "");
@@ -855,7 +856,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    const hargaJualInput = document.getElementById("harga_jual");
+    const hargaJualInput = document.getElementById("harga_jual"); 
     const uangMukaInput = document.getElementById("uang_muka");
     const nilaiKprDisplay = document.getElementById("nilai_kpr_display");
 
