@@ -247,12 +247,14 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a href="/" class="nav-link active" title="Kalkulator Hutang">
+      {% url 'buktisurvei:index' as buktisurvei_url %}
+
+      <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}" title="Kalkulator Hutang">
         <i class="bi bi-calculator-fill"></i>
         <span>Kalkulator Hutang</span>
       </a>
 
-      <a href="{% url 'buktisurvei:index' %}" class="nav-link" title="Bukti Survei">
+      <a href="{{ buktisurvei_url }}" class="nav-link {% if request.path == buktisurvei_url %}active{% endif %}" title="Bukti Survei">
         <i class="bi bi-camera-fill"></i>
         <span>Bukti Survei</span>
       </a>
@@ -269,7 +271,7 @@
 
       {% comment %}
       Tambahkan menu baru di sini, contoh:
-      <a href="/menu-baru/" class="nav-link" title="Nama Menu">
+      <a href="/menu-baru/" class="nav-link {% if request.path == '/menu-baru/' %}active{% endif %}" title="Nama Menu">
         <i class="bi bi-graph-up"></i>
         <span>Nama Menu</span>
       </a>
