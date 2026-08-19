@@ -668,33 +668,43 @@ def extract_active_facilities(
                         "raw": block,
                     })
 
-                # deteksi kondisi aktif eksplisit (skip kalau ada "lunas")
-                kondisi_targets = []
+                # deteksi kondisi (Aktif ATAU Lunas) — keduanya direkam, TIDAK di-skip.
+                # Fasilitas Lunas tetap dicatat supaya bisa ditandai di popup
+                # "Kualitas Bermasalah" (riwayat bermasalah meski sudah lunas),
+                # namun tidak akan dihitung ke Total Monthly Payment.
+                kondisi_targets = []  # list of (block, status) status in {"Aktif","Lunas"}
                 for b in blocks_info:
                     if "kondisi" in b["lower"]:
                         window = b["lower"]
                         for other in blocks_info:
                             if abs(other["top"] - b["top"]) <= 15:
                                 window += " " + other["lower"]
-                        if ("fasilitas aktif" in window) or re.search(r"fasilitas\s+aktif", window):
-                            if re.search(r"kondisi[\s\S]{0,30}lunas", window):
-                                logger.debug(f"Page {page_num} skip kondisi lunas: {window}")
-                                continue
-                            kondisi_targets.append(b)
+                        if re.search(r"kondisi[\s\S]{0,30}lunas", window):
+                            kondisi_targets.append((b, "Lunas"))
+                        elif ("fasilitas aktif" in window) or re.search(r"fasilitas\s+aktif", window):
+                            kondisi_targets.append((b, "Aktif"))
 
                 # fallback if phrase exists but no explicit condition block
                 fallback_mode = False
-                if not kondisi_targets and "fasilitas aktif" in lower_raw:
-                    fallback_mode = True
+                fallback_status = "Aktif"
+                if not kondisi_targets:
+                    if "fasilitas aktif" in lower_raw:
+                        fallback_mode = True
+                        fallback_status = "Aktif"
+                    elif "lunas" in lower_raw:
+                        fallback_mode = True
+                        fallback_status = "Lunas"
 
                 # konteks Kredit/Pembiayaan
                 kredit_blocks = [b for b in blocks_info if "kredit/pembiayaan" in b["lower"]]
 
-                iter_targets = kondisi_targets if kondisi_targets else ([{"lower": "", "top": 0, "x0": 0, "text": ""}] if fallback_mode else [])
+                iter_targets = kondisi_targets if kondisi_targets else (
+                    [({"lower": "", "top": 0, "x0": 0, "text": ""}, fallback_status)] if fallback_mode else []
+                )
                 if not iter_targets:
                     continue
 
-                for cond_blk in iter_targets:
+                for cond_blk, kondisi_status in iter_targets:
                     raw_bank = "TIDAK DITEMUKAN"
                     raw_cabang = "TIDAK DITEMUKAN"
                     header_tanggal_update_raw = None
@@ -841,6 +851,7 @@ def extract_active_facilities(
                         loan_amount,
                         loan_term_months,
                         page_num,
+                        kondisi_status,
                     )
                     if key in seen:
                         continue
@@ -873,6 +884,7 @@ def extract_active_facilities(
                         "bulan_tahun": bulan_tahun_display, 
                         "tanggal_update": tanggal_update_dt,
                         "tanggal_update_raw": tanggal_update_raw,
+                        "kondisi": kondisi_status,
                         "page": page_num,
                     })
     except Exception as e:
@@ -913,13 +925,21 @@ def extract_slik_data(
             n_months=term,
         )
         monthly_payment = details["Monthly Payment"]
-        total_monthly_payment += monthly_payment
+        kondisi_status = fac.get("kondisi", "Aktif")
+
+        # Hanya fasilitas berkondisi Aktif yang dihitung ke Total Monthly Payment.
+        # Fasilitas Lunas tetap direkam (kondisi="Lunas") supaya bisa ditandai
+        # di popup Kualitas Bermasalah, tapi tidak menambah beban hutang berjalan.
+        if kondisi_status == "Aktif":
+            total_monthly_payment += monthly_payment
+
         rows.append({
             "no": idx,
             "nama": nama,
             "Nama": nama,
             "bank": fac.get("bank"),
             "cabang": fac.get("cabang"),
+            "kondisi": kondisi_status,
             "kualitas": fac.get("kualitas", "TIDAK DITEMUKAN"),
             "bulan_tahun": fac.get("bulan_tahun", "TIDAK DITEMUKAN"),  
             "tanggal_update": fac.get("tanggal_update_raw", "TIDAK DITEMUKAN"),
@@ -937,9 +957,14 @@ def extract_slik_data(
         })
 
     df = pd.DataFrame(rows)
+
+    # facility_count merujuk pada jumlah fasilitas AKTIF saja (dipakai views.py
+    # untuk menentukan status "semua lunas / tidak ada fasilitas aktif").
+    aktif_count = sum(1 for r in rows if r.get("kondisi") == "Aktif")
+
     meta = {
         "has_text": has_text,
-        "facility_count": len(rows),
+        "facility_count": aktif_count,
         "total_monthly_payment": round(total_monthly_payment, 2),
     }
     return df, meta
@@ -1091,4 +1116,3 @@ def calculate_credit_analysis(
         },
         "is_layak": is_layak,
     }
-
