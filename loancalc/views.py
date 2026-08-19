@@ -94,11 +94,11 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                     if not meta.get("has_text", True):
                         message = "PDF tampaknya tidak berisi teks yang bisa diekstraksi (mungkin hasil scan tanpa OCR). Silakan cek ulang atau jalankan OCR terlebih dahulu."
 
-                    if df is None or (hasattr(df, "empty") and df.empty) or meta.get("facility_count", 0) == 0:
-                        # semua lunas / tidak ada fasilitas aktif valid
+                    if df is None or (hasattr(df, "empty") and df.empty):
+                        # PDF benar-benar tidak ada fasilitas yang terdeteksi sama sekali
                         message = message or (
                             f"Nasabah atas nama {nama_nasabah} sudah lunas semua atau tidak ada "
-                            "fasilitas aktif yang valid."
+                            "fasilitas yang valid."
                         )
                         result = {
                             "rows": [],
@@ -117,11 +117,15 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             df = _pd.DataFrame(df) if not isinstance(df, _pd.DataFrame) else df
                             records = df.to_dict(orient="records")
 
+                        # Hanya fasilitas berkondisi Aktif yang masuk ke tabel utama
+                        # & dihitung sebagai hutang berjalan nasabah.
+                        aktif_records = [rec for rec in records if rec.get("kondisi") == "Aktif"]
+
                         rows = []
-                        for rec in records:
+                        for i, rec in enumerate(aktif_records, start=1):
                             monthly_payment = rec.get("monthly_payment", 0.0) or 0.0
                             rows.append({
-                                "no": rec.get("no", ""),
+                                "no": i,
                                 "bank": rec.get("bank", "TIDAK DITEMUKAN"),
                                 "cabang": rec.get("cabang", "TIDAK DITEMUKAN"),
                                 "loan_amount": rec.get("loan_amount", 0.0),
@@ -137,6 +141,11 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                                 "page": rec.get("page", "N/A"),
                             })
 
+                        # Popup "Kualitas Bermasalah" mengambil dari SEMUA fasilitas
+                        # (Aktif maupun Lunas) yang riwayat kualitasnya bermasalah.
+                        # Ini supaya nasabah yang dulu pernah menunggak tapi
+                        # sekarang sudah Lunas tetap kelihatan statusnya, bukan
+                        # ikut hilang bersama fasilitas Lunas lain.
                         problem_facilities = [
                             {
                                 "pelapor": rec.get("bank", "TIDAK DITEMUKAN"),
@@ -144,6 +153,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                                 "tanggal_update": rec.get("tanggal_update", "TIDAK DITEMUKAN"),
                                 "bulan_tahun": rec.get("bulan_tahun", "TIDAK DITEMUKAN"),
                                 "kualitas": rec.get("kualitas", "TIDAK DITEMUKAN"),
+                                "kondisi": rec.get("kondisi", "TIDAK DITEMUKAN"),
                             }
                             for rec in records
                             if is_kualitas_bermasalah(rec.get("kualitas", ""))
@@ -155,11 +165,21 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         nama_from_record = first.get("nama") or first.get("Nama")
                         final_name = nama_from_record if nama_from_record else nama_nasabah or "TIDAK DITEMUKAN"
 
+                        # "all_paid" sekarang murni berdasarkan ada/tidaknya fasilitas
+                        # Aktif — meski begitu, problem_facilities (termasuk yang
+                        # sudah Lunas) tetap disertakan supaya popup tetap muncul.
+                        all_paid = (len(aktif_records) == 0)
+                        if all_paid:
+                            message = message or (
+                                f"Nasabah atas nama {final_name} sudah lunas semua atau tidak ada "
+                                "fasilitas aktif yang valid."
+                            )
+
                         result = {
                             "rows": rows,
                             "total_monthly_payment": meta.get("total_monthly_payment", 0.0),
                             "nama": final_name,
-                            "all_paid": False,
+                            "all_paid": all_paid,
                             "problem_facilities": problem_facilities,
                         }
 
