@@ -276,6 +276,18 @@ function getKualitasBadgeStyle(kualitasStr) {
     return { bg: "#e2e3e5", color: "#41464b", border: "#d3d6d8" };
 }
 
+// Warna badge Kondisi: hijau kalau sudah Lunas, biru kalau masih Aktif
+function getKondisiBadgeStyle(kondisiStr) {
+    const k = (kondisiStr || "").trim().toLowerCase();
+    if (k === "lunas") {
+        return { bg: "#e7f5ec", color: "#2f9e5b", border: "#b7e4c7", label: "Lunas" };
+    }
+    if (k === "aktif") {
+        return { bg: "#e7f1ff", color: "#0d6efd", border: "#b6d4fe", label: "Aktif" };
+    }
+    return { bg: "#e2e3e5", color: "#41464b", border: "#d3d6d8", label: "Tidak Diketahui" };
+}
+
 function escapeHtml(str) {
     if (str === null || str === undefined) return "";
     return String(str)
@@ -308,6 +320,7 @@ function buildProblemFacilitiesHtml(list, mode) {
     list.forEach(function (f) {
         const within = isWithinLast6Months(f.bulan_tahun);
         const badgeStyle = getKualitasBadgeStyle(f.kualitas);
+        const kondisiStyle = getKondisiBadgeStyle(f.kondisi);
 
         let bulanTahunDisplay = `<span style="color:#495057;">${escapeHtml(f.bulan_tahun || "TIDAK DITEMUKAN")}</span>`;
         if (within === null) {
@@ -320,9 +333,14 @@ function buildProblemFacilitiesHtml(list, mode) {
                     <div style="font-weight:600; color:#212529; font-size:0.92rem; line-height:1.3;">
                         <i class="bi bi-bank" style="color:#6c757d; margin-right:5px;"></i>${escapeHtml(f.pelapor)}
                     </div>
-                    <span style="flex-shrink:0; font-size:0.72rem; font-weight:600; padding:3px 9px; border-radius:999px; background:${badgeStyle.bg}; color:${badgeStyle.color}; border:1px solid ${badgeStyle.border}; white-space:nowrap;">
-                        ${escapeHtml(f.kualitas)}
-                    </span>
+                    <div style="display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end;">
+                        <span style="font-size:0.72rem; font-weight:600; padding:3px 9px; border-radius:999px; background:${kondisiStyle.bg}; color:${kondisiStyle.color}; border:1px solid ${kondisiStyle.border}; white-space:nowrap;">
+                            <i class="bi ${kondisiStyle.label === 'Lunas' ? 'bi-check-circle-fill' : 'bi-hourglass-split'}" style="margin-right:3px;"></i>${kondisiStyle.label}
+                        </span>
+                        <span style="font-size:0.72rem; font-weight:600; padding:3px 9px; border-radius:999px; background:${badgeStyle.bg}; color:${badgeStyle.color}; border:1px solid ${badgeStyle.border}; white-space:nowrap;">
+                            ${escapeHtml(f.kualitas)}
+                        </span>
+                    </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:0.8rem;">
                     <div>
@@ -438,29 +456,29 @@ document.addEventListener("DOMContentLoaded", function () {
       <h3 class="mb-1 fw-bold" style="color: #ffffff !important; margin: 0;">Kalkulator Perhitungan Hutang Nasabah</h3>
       <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85) !important; margin: 0;">Integrasi data rekam jejak finansial berdasarkan dokumen SLIK OJK</p>
     </div>
-    {% if result and result.rows %}
+    {% if result %}
       <div class="d-flex gap-2 align-items-center flex-wrap">
-        <button type="button" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary d-none" id="show-problem-btn" onclick="showProblemFacilitiesPopup()" title="Lihat Kualitas Bermasalah" aria-label="Lihat kembali detail kualitas bermasalah">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          <span class="badge bg-danger rounded-pill badge-count ms-1" id="problem-count-badge"></span>
-        </button>
+        {% if result.problem_facilities %}
+          <button type="button" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary d-none" id="show-problem-btn" onclick="showProblemFacilitiesPopup()" title="Lihat Kualitas Bermasalah" aria-label="Lihat kembali detail kualitas bermasalah">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span class="badge bg-danger rounded-pill badge-count ms-1" id="problem-count-badge"></span>
+          </button>
+        {% endif %}
         <a href="{{ request.path }}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" id="clear-data-btn" aria-label="Bersihkan data dan kembali ke kondisi awal">
           <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Data
         </a>
-        <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
-          {% csrf_token %}
-          <input type="hidden" name="export_csv" value="1" />
-          <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
-          <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
-          <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
-            Export CSV
-          </button>
-        </form>
+        {% if result.rows %}
+          <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
+            {% csrf_token %}
+            <input type="hidden" name="export_csv" value="1" />
+            <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
+            <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
+            <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
+              Export CSV
+            </button>
+          </form>
+        {% endif %}
       </div>
-    {% elif result %}
-      <a href="{{ request.path }}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" id="clear-data-btn" aria-label="Bersihkan data dan kembali ke kondisi awal">
-        <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Data
-      </a>
     {% endif %}
   </div>
 
