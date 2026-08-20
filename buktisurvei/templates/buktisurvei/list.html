@@ -9,10 +9,14 @@
     <video id="videoPreview" autoplay playsinline muted></video>
   </div>
 
-  <div id="permissionAlert" class="alert alert-warning d-none mt-3" role="alert">
-    Kamera atau lokasi belum diizinkan. Izinkan lewat pop-up browser, atau buka pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".
-    <div class="mt-2">
-      <button type="button" class="btn btn-sm btn-warning" id="retryPermissionBtn">Coba Lagi</button>
+  <div id="permissionAlert" class="perm-alert d-none mt-3" role="alert">
+    <div class="perm-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div class="perm-alert-body">
+      <div class="perm-alert-title">Kamera / lokasi belum diizinkan</div>
+      <p class="perm-alert-text">Izinkan lewat pop-up browser, atau buka pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".</p>
+      <button type="button" class="perm-alert-btn" id="retryPermissionBtn">
+        <i class="bi bi-arrow-clockwise"></i> Coba Lagi
+      </button>
     </div>
   </div>
 
@@ -65,7 +69,13 @@
     </div>
   </div>
   {% empty %}
-  <p class="text-muted">Belum ada bukti survei.</p>
+  <div class="col-12">
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-images"></i></div>
+      <p class="empty-state-title">Belum ada bukti survei</p>
+      <p class="empty-state-sub">Foto yang kamu ambil akan muncul di sini</p>
+    </div>
+  </div>
   {% endfor %}
 </div>
 
@@ -166,6 +176,56 @@
     font-size: 0.85rem;
   }
   .foto-icon-danger { color: #dc3545; }
+
+  /* Alert izin - modern */
+  .perm-alert {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #fff8e6, #fff1cc);
+    border: 1px solid #ffe1a1;
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 4px 14px rgba(255, 193, 7, 0.15);
+  }
+  .perm-alert-icon {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #ffc107;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 8px rgba(255,193,7,0.4);
+  }
+  .perm-alert-title { font-weight: 700; color: #8a5a00; margin-bottom: 0.25rem; font-size: 0.92rem; }
+  .perm-alert-text { font-size: 0.83rem; color: #8a6a1f; margin-bottom: 0.6rem; line-height: 1.4; }
+  .perm-alert-btn {
+    background: #ffc107; color: #402d00; border: none; border-radius: 999px;
+    padding: 0.4rem 1.1rem; font-weight: 600; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .perm-alert-btn:hover { background: #ffca2c; }
+
+  /* Empty state - modern */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    border: 2px dashed #dbe4f0;
+    border-radius: 1rem;
+    background: #f8fafc;
+  }
+  .empty-state-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 0.8rem;
+    border-radius: 50%;
+    background: #eaf1ff;
+    color: var(--blue-1, #0d6efd);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+  }
+  .empty-state-title { font-weight: 600; color: #46536b; margin-bottom: 0.2rem; }
+  .empty-state-sub { font-size: 0.85rem; color: #8a94a6; margin: 0; }
 </style>
 {% endblock %}
 
