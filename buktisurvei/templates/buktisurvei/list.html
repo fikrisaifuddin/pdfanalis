@@ -24,10 +24,6 @@
             <span class="lo-day" id="loDay">-</span>
           </div>
         </div>
-        <div class="lo-brand">
-          <span class="lo-brand-main">SLIK OJK</span>
-          <span class="lo-brand-sub">Loan Calc</span>
-        </div>
       </div>
     </div>
 
@@ -48,7 +44,6 @@
   </div>
 
   <div class="camera-controls">
-    <input type="text" id="keteranganInput" class="form-control camera-input" placeholder="Keterangan (opsional)">
     <button type="button" id="captureBtn" class="btn btn-capture" disabled>
       <i class="bi bi-camera-fill"></i> <span id="captureBtnText">Ambil Foto</span>
     </button>
@@ -205,9 +200,6 @@
   .lo-vdivider { width: 3px; align-self: stretch; background: #4da3ff; border-radius: 2px; }
   .lo-date-col { display: flex; flex-direction: column; font-size: 0.85rem; }
   .lo-day { color: rgba(255,255,255,0.85); }
-  .lo-brand { margin-top: 0.5rem; text-align: right; }
-  .lo-brand-main { color: #4da3ff; font-weight: 700; font-size: 0.8rem; margin-right: 0.4rem; }
-  .lo-brand-sub { color: rgba(255,255,255,0.9); font-size: 0.75rem; }
 
   /* ===== Kontrol bawah ===== */
   .camera-controls {
@@ -218,7 +210,6 @@
     gap: 0.7rem;
   }
   .preview-controls { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-  .camera-input { border-radius: 0.6rem; }
   .btn-capture {
     background: linear-gradient(135deg, var(--blue-1), var(--blue-dark));
     color: #fff;
@@ -330,7 +321,6 @@
   const previewStage = document.getElementById('previewStage');
   const permissionAlert = document.getElementById('permissionAlert');
   const retryBtn = document.getElementById('retryPermissionBtn');
-  const keteranganInput = document.getElementById('keteranganInput');
   const uploadForm = document.getElementById('uploadForm');
   const fotoInput = document.getElementById('fotoInput');
   const keteranganHidden = document.getElementById('keteranganHidden');
@@ -647,15 +637,6 @@
       const lp = 12;
       ctx.drawImage(logoImg, W - logoW - lp, lp, logoW, logoH);
 
-      ctx.textAlign = 'right';
-      ctx.font = 'bold ' + (baseFont * 0.85) + 'px sans-serif';
-      ctx.fillStyle = BLUE_ACCENT;
-      ctx.fillText('SLIK OJK', W - pad, H - pad - lineH * 0.55);
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = baseFont * 0.8 + 'px sans-serif';
-      ctx.fillText('Loan Calc', W - pad, H - pad);
-      ctx.textAlign = 'left';
-
       finishCapture();
     }
 
@@ -704,7 +685,7 @@
     const dt = new DataTransfer();
     dt.items.add(file);
     fotoInput.files = dt.files;
-    keteranganHidden.value = keteranganInput.value;
+    keteranganHidden.value = '';
     uploadForm.submit();
     stopEverythingAndClose();
   });
