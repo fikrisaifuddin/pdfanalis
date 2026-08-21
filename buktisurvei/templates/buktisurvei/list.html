@@ -3,7 +3,7 @@
 {% block content %}
 <h4 class="mb-3">Bukti Survei</h4>
 
-<div id="cameraStage" class="camera-fullscreen">
+<div id="cameraStage" class="camera-fullscreen d-none">
   <div class="camera-frame-wrap bg-dark">
     <video id="videoPreview" autoplay playsinline muted></video>
 
@@ -31,7 +31,6 @@
       </div>
     </div>
 
-    <div class="camera-badge"><i class="bi bi-record-circle-fill"></i> Live</div>
     <button type="button" id="closeCameraBtn" class="camera-close-btn" title="Tutup">
       <i class="bi bi-x-lg"></i>
     </button>
@@ -155,18 +154,6 @@
     display: block;
   }
 
-  .camera-badge {
-    position: absolute;
-    top: 1.2rem;
-    left: 1.2rem;
-    z-index: 3;
-    background: rgba(220, 53, 69, 0.9);
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-  }
   .camera-close-btn {
     position: absolute;
     top: 1rem;
