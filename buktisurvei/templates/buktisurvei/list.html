@@ -3,13 +3,41 @@
 {% block content %}
 <h4 class="mb-3">Bukti Survei</h4>
 
-<div id="cameraStage" class="camera-card">
-  <div class="camera-badge"><i class="bi bi-record-circle-fill"></i> Live</div>
+<div id="cameraStage" class="camera-fullscreen">
   <div class="camera-frame-wrap bg-dark">
     <video id="videoPreview" autoplay playsinline muted></video>
+
+    <!-- Watermark LIVE, tampil di atas video, real-time -->
+    <div id="liveOverlay" class="live-overlay d-none">
+      <div class="lo-top">
+        <img src="{% static 'images/logo_btn_blue.png' %}" class="lo-logo" alt="logo">
+      </div>
+      <div class="lo-bottom">
+        <div class="lo-kode">Kode Foto: <span id="loKode">-</span></div>
+        <div class="lo-divider-h"></div>
+        <div class="lo-address" id="loAddress">Mendeteksi lokasi...</div>
+        <div class="lo-time-row">
+          <span class="lo-time" id="loTime">--:--</span>
+          <span class="lo-vdivider"></span>
+          <div class="lo-date-col">
+            <span class="lo-date" id="loDate">-</span>
+            <span class="lo-day" id="loDay">-</span>
+          </div>
+        </div>
+        <div class="lo-brand">
+          <span class="lo-brand-main">SLIK OJK</span>
+          <span class="lo-brand-sub">Loan Calc</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="camera-badge"><i class="bi bi-record-circle-fill"></i> Live</div>
+    <button type="button" id="closeCameraBtn" class="camera-close-btn" title="Tutup">
+      <i class="bi bi-x-lg"></i>
+    </button>
   </div>
 
-  <div id="permissionAlert" class="perm-alert d-none mt-3" role="alert">
+  <div id="permissionAlert" class="perm-alert d-none" role="alert">
     <div class="perm-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
     <div class="perm-alert-body">
       <div class="perm-alert-title">Kamera / lokasi belum diizinkan</div>
@@ -20,27 +48,34 @@
     </div>
   </div>
 
-  <input type="text" id="keteranganInput" class="form-control camera-input mt-3" placeholder="Keterangan (opsional)">
-
-  <button type="button" id="captureBtn" class="btn btn-capture mt-3" disabled>
-    <i class="bi bi-camera-fill"></i> <span id="captureBtnText">Ambil Foto</span>
-  </button>
+  <div class="camera-controls">
+    <input type="text" id="keteranganInput" class="form-control camera-input" placeholder="Keterangan (opsional)">
+    <button type="button" id="captureBtn" class="btn btn-capture" disabled>
+      <i class="bi bi-camera-fill"></i> <span id="captureBtnText">Ambil Foto</span>
+    </button>
+  </div>
 </div>
 
-<div id="previewStage" class="camera-card d-none">
-  <canvas id="photoCanvas" class="camera-frame w-100"></canvas>
-  <div class="d-flex gap-2 flex-wrap mt-3">
-    <button type="button" id="retakeBtn" class="btn btn-outline-secondary">
+<div id="previewStage" class="camera-fullscreen d-none">
+  <div class="camera-frame-wrap bg-dark">
+    <canvas id="photoCanvas" class="preview-canvas"></canvas>
+  </div>
+  <div class="camera-controls preview-controls">
+    <button type="button" id="retakeBtn" class="btn btn-outline-light">
       <i class="bi bi-arrow-counterclockwise"></i> Ulangi
     </button>
-    <button type="button" id="downloadBtn" class="btn btn-outline-primary">
-      <i class="bi bi-download"></i> Unduh ke Galeri
+    <button type="button" id="downloadBtn" class="btn btn-outline-light">
+      <i class="bi bi-download"></i> Unduh
     </button>
     <button type="button" id="saveBtn" class="btn btn-capture">
       <i class="bi bi-cloud-arrow-up-fill"></i> Simpan
     </button>
   </div>
 </div>
+
+<button type="button" id="openCameraBtn" class="btn btn-capture mb-4">
+  <i class="bi bi-camera-fill"></i> Buka Kamera
+</button>
 
 <hr class="my-4">
 
@@ -89,46 +124,42 @@
 
 {% block extra_css %}
 <style>
-  .camera-card {
-    max-width: 480px;
-    background: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 18px rgba(13, 38, 76, 0.12);
-    padding: 1rem;
-    position: relative;
+  /* ===== Fullscreen kamera ala aplikasi Time Mark ===== */
+  .camera-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: #000;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* Wrapper preview kamera: adaptif portrait (HP) maupun landscape (laptop/webcam) */
   .camera-frame-wrap {
-    border-radius: 0.75rem;
+    position: relative;
+    flex: 1;
     overflow: hidden;
-    max-height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .camera-frame-wrap video {
     width: 100%;
-    height: auto;
-    max-height: 70vh;
+    height: 100%;
+    object-fit: cover;
     display: block;
-    object-fit: contain;
   }
-
-  .camera-frame {
-    border-radius: 0.75rem;
-    overflow: hidden;
-    max-height: 70vh;
+  .preview-canvas {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
     display: block;
   }
 
   .camera-badge {
     position: absolute;
-    top: 1.5rem;
-    left: 1.5rem;
-    z-index: 2;
+    top: 1.2rem;
+    left: 1.2rem;
+    z-index: 3;
     background: rgba(220, 53, 69, 0.9);
     color: #fff;
     font-size: 0.7rem;
@@ -136,18 +167,115 @@
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
   }
+  .camera-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ===== Watermark LIVE di atas video ===== */
+  .live-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .lo-top {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+  }
+  .lo-logo { width: 22%; max-width: 110px; height: auto; }
+
+  .lo-bottom {
+    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.55) 55%, transparent);
+    color: #fff;
+    padding: 1.4rem 1.1rem 1.1rem;
+  }
+  .lo-kode { font-weight: 700; font-size: 0.8rem; }
+  .lo-divider-h { border-top: 1px solid rgba(255,255,255,0.35); margin: 0.4rem 0 0.6rem; }
+  .lo-address {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+  }
+  .lo-time-row { display: flex; align-items: center; gap: 0.7rem; }
+  .lo-time { font-weight: 700; font-size: 2.1rem; line-height: 1; }
+  .lo-vdivider { width: 3px; align-self: stretch; background: #4da3ff; border-radius: 2px; }
+  .lo-date-col { display: flex; flex-direction: column; font-size: 0.85rem; }
+  .lo-day { color: rgba(255,255,255,0.85); }
+  .lo-brand { margin-top: 0.5rem; text-align: right; }
+  .lo-brand-main { color: #4da3ff; font-weight: 700; font-size: 0.8rem; margin-right: 0.4rem; }
+  .lo-brand-sub { color: rgba(255,255,255,0.9); font-size: 0.75rem; }
+
+  /* ===== Kontrol bawah ===== */
+  .camera-controls {
+    padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .preview-controls { flex-direction: row; flex-wrap: wrap; justify-content: center; }
   .camera-input { border-radius: 0.6rem; }
   .btn-capture {
     background: linear-gradient(135deg, var(--blue-1), var(--blue-dark));
     color: #fff;
     border: none;
     border-radius: 999px;
-    padding: 0.6rem 1.4rem;
+    padding: 0.7rem 1.4rem;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
   }
   .btn-capture:hover { color: #fff; opacity: 0.92; }
   .btn-capture:disabled { opacity: 0.5; }
+
+  .perm-alert {
+    position: absolute;
+    left: 1rem; right: 1rem; top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #fff8e6, #fff1cc);
+    border: 1px solid #ffe1a1;
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 4px 14px rgba(255, 193, 7, 0.15);
+  }
+  .perm-alert-icon {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #ffc107;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 8px rgba(255,193,7,0.4);
+  }
+  .perm-alert-title { font-weight: 700; color: #8a5a00; margin-bottom: 0.25rem; font-size: 0.92rem; }
+  .perm-alert-text { font-size: 0.83rem; color: #8a6a1f; margin-bottom: 0.6rem; line-height: 1.4; }
+  .perm-alert-btn {
+    background: #ffc107; color: #402d00; border: none; border-radius: 999px;
+    padding: 0.4rem 1.1rem; font-weight: 600; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .perm-alert-btn:hover { background: #ffca2c; }
 
   .foto-card {
     position: relative;
@@ -177,37 +305,6 @@
   }
   .foto-icon-danger { color: #dc3545; }
 
-  /* Alert izin - modern */
-  .perm-alert {
-    display: flex;
-    gap: 0.9rem;
-    align-items: flex-start;
-    background: linear-gradient(135deg, #fff8e6, #fff1cc);
-    border: 1px solid #ffe1a1;
-    border-radius: 1rem;
-    padding: 1rem 1.1rem;
-    box-shadow: 0 4px 14px rgba(255, 193, 7, 0.15);
-  }
-  .perm-alert-icon {
-    flex-shrink: 0;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: #ffc107;
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
-    box-shadow: 0 3px 8px rgba(255,193,7,0.4);
-  }
-  .perm-alert-title { font-weight: 700; color: #8a5a00; margin-bottom: 0.25rem; font-size: 0.92rem; }
-  .perm-alert-text { font-size: 0.83rem; color: #8a6a1f; margin-bottom: 0.6rem; line-height: 1.4; }
-  .perm-alert-btn {
-    background: #ffc107; color: #402d00; border: none; border-radius: 999px;
-    padding: 0.4rem 1.1rem; font-weight: 600; font-size: 0.82rem;
-    display: inline-flex; align-items: center; gap: 0.35rem;
-  }
-  .perm-alert-btn:hover { background: #ffca2c; }
-
-  /* Empty state - modern */
   .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -232,6 +329,8 @@
 {% block extra_js %}
 <script>
 (function () {
+  const openCameraBtn = document.getElementById('openCameraBtn');
+  const closeCameraBtn = document.getElementById('closeCameraBtn');
   const video = document.getElementById('videoPreview');
   const captureBtn = document.getElementById('captureBtn');
   const captureBtnText = document.getElementById('captureBtnText');
@@ -249,6 +348,13 @@
   const fotoInput = document.getElementById('fotoInput');
   const keteranganHidden = document.getElementById('keteranganHidden');
 
+  const liveOverlay = document.getElementById('liveOverlay');
+  const loKode = document.getElementById('loKode');
+  const loAddress = document.getElementById('loAddress');
+  const loTime = document.getElementById('loTime');
+  const loDate = document.getElementById('loDate');
+  const loDay = document.getElementById('loDay');
+
   const logoUrl = "{% static 'images/logo_btn_blue.png' %}";
   const logoImg = new Image();
   logoImg.src = logoUrl;
@@ -258,9 +364,44 @@
   let currentStream = null;
   let lastCoords = null;
   let lastBlob = null;
+  let currentKode = null;
+  let lastAddress = null;
+  let clockTimer = null;
+  let addressTimer = null;
+  let watchId = null;
+
+  function generateKodeFoto() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let out = '';
+    for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  // ===== Buka / tutup kamera fullscreen =====
+  openCameraBtn.addEventListener('click', function () {
+    cameraStage.classList.remove('d-none');
+    document.body.style.overflow = 'hidden';
+    startCamera();
+  });
+
+  closeCameraBtn.addEventListener('click', stopEverythingAndClose);
+
+  function stopEverythingAndClose() {
+    if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    clearInterval(clockTimer);
+    clearInterval(addressTimer);
+    cameraStage.classList.add('d-none');
+    previewStage.classList.add('d-none');
+    document.body.style.overflow = '';
+  }
 
   function startCamera() {
     permissionAlert.classList.add('d-none');
+    liveOverlay.classList.add('d-none');
+    currentKode = generateKodeFoto();
+    loKode.textContent = currentKode;
+
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'environment',
@@ -273,18 +414,43 @@
         currentStream = stream;
         video.srcObject = stream;
         captureBtn.disabled = false;
+        liveOverlay.classList.remove('d-none');
+        startLiveClock();
       })
       .catch(showPermissionError);
 
     if ('geolocation' in navigator) {
-      navigator.geolocation.watchPosition(
+      watchId = navigator.geolocation.watchPosition(
         function (pos) { lastCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
         showPermissionError,
         { enableHighAccuracy: true }
       );
+      // Ambil alamat awal, lalu refresh berkala biar gak spam API tiap gerak
+      pollAddress();
+      addressTimer = setInterval(pollAddress, 20000);
     } else {
       showPermissionError();
     }
+  }
+
+  async function pollAddress() {
+    if (!lastCoords) return;
+    loAddress.textContent = 'Mendeteksi lokasi...';
+    const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
+    lastAddress = alamat;
+    loAddress.textContent = alamat;
+  }
+
+  function startLiveClock() {
+    updateClock();
+    clockTimer = setInterval(updateClock, 1000);
+  }
+
+  function updateClock() {
+    const now = new Date();
+    loTime.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    loDate.textContent = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    loDay.textContent = now.toLocaleDateString('id-ID', { weekday: 'long' });
   }
 
   function showPermissionError() {
@@ -294,39 +460,29 @@
 
   retryBtn.addEventListener('click', startCamera);
 
-  // Susun alamat detail dari bagian-bagian address Nominatim (bukan cuma display_name generik)
   function buildDetailedAddress(data) {
     const a = data.address || {};
     const parts = [];
-
-    // Nama tempat/komplek/gedung (kalau OSM punya datanya)
     const namaTempat = (data.namedetails && data.namedetails.name)
       ? data.namedetails.name
       : (a.building || a.residential || a.neighbourhood || null);
     if (namaTempat) parts.push(namaTempat);
 
-    // Jalan + nomor rumah
     let jalan = '';
     if (a.road) jalan += a.road;
     if (a.house_number) jalan += (jalan ? ' No.' : 'No.') + a.house_number;
     if (jalan) parts.push(jalan);
 
-    // RT/RW / lingkungan kalau ada
     if (a.suburb && a.suburb !== namaTempat) parts.push(a.suburb);
     if (a.village && a.village !== a.suburb) parts.push(a.village);
 
-    // Kecamatan
     if (a.city_district) parts.push('Kec. ' + a.city_district);
     else if (a.county) parts.push(a.county);
 
-    // Kota/Kabupaten
     if (a.city) parts.push(a.city);
     else if (a.town) parts.push(a.town);
 
-    // Provinsi
     if (a.state) parts.push(a.state);
-
-    // Kode pos
     if (a.postcode) parts.push(a.postcode);
 
     const hasil = parts.filter(Boolean).join(', ');
@@ -344,13 +500,6 @@
     } catch (e) {
       return lat.toFixed(6) + ', ' + lng.toFixed(6);
     }
-  }
-
-  function generateKodeFoto() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let out = '';
-    for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)];
-    return out;
   }
 
   function wrapText(ctx, text, x, startY, maxWidth, lineHeight) {
@@ -374,14 +523,40 @@
     return lines;
   }
 
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
+  // Ambil frame dari <video> dan crop ke rasio target (rasio layar) dengan
+  // crop tengah (center-crop) — sama seperti object-fit: cover di CSS.
+  // Catatan: TIDAK melakukan auto-rotate. Rotasi otomatis hanya relevan untuk
+  // sensor kamera HP tertentu dan justru bikin foto jadi miring saat sumbernya
+  // webcam laptop/desktop (landscape native, tidak butuh diputar).
+  function captureOrientedFrame(sourceVideo, targetAspect) {
+    if (!targetAspect || !isFinite(targetAspect)) targetAspect = 9 / 16;
+
+    const vw = sourceVideo.videoWidth;
+    const vh = sourceVideo.videoHeight;
+    const videoAspect = vw / vh;
+
+    let sx, sy, sw, sh;
+    if (videoAspect > targetAspect) {
+      // sumber lebih lebar dari target -> crop kiri-kanan
+      sh = vh;
+      sw = vh * targetAspect;
+      sx = (vw - sw) / 2;
+      sy = 0;
+    } else {
+      // sumber lebih tinggi dari target -> crop atas-bawah
+      sw = vw;
+      sh = vw / targetAspect;
+      sx = 0;
+      sy = (vh - sh) / 2;
+    }
+
+    const out = document.createElement('canvas');
+    out.width = Math.max(1, Math.round(sw));
+    out.height = Math.max(1, Math.round(sh));
+    const octx = out.getContext('2d');
+    octx.drawImage(sourceVideo, sx, sy, sw, sh, 0, 0, out.width, out.height);
+
+    return out;
   }
 
   captureBtn.addEventListener('click', async function () {
@@ -391,14 +566,20 @@
     }
 
     captureBtn.disabled = true;
-    captureBtnText.textContent = 'Mendapatkan lokasi...';
+    captureBtnText.textContent = 'Memproses...';
 
-    const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
-    const kodeFoto = generateKodeFoto();
+    const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
+    const kodeFoto = currentKode || generateKodeFoto();
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Crop + koreksi orientasi video mentah supaya hasil foto sama persis
+    // dengan yang terlihat live di layar (object-fit: cover), tanpa strip
+    // hitam maupun zoom berlebihan. Pakai rasio window (bukan elemen DOM)
+    // karena lebih stabil, dan auto-rotate kalau ternyata frame mentah dari
+    // kamera device ini landscape padahal layar portrait (atau sebaliknya).
+    const framed = captureOrientedFrame(video, window.innerWidth / window.innerHeight);
+    canvas.width = framed.width;
+    canvas.height = framed.height;
+    ctx.drawImage(framed, 0, 0);
 
     const now = new Date();
     const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -409,7 +590,6 @@
     const pad = Math.round(W * 0.045);
     const baseFont = Math.max(13, Math.round(W * 0.032));
 
-    // ukur tinggi alamat dulu (untuk hitung tinggi bar gradient)
     ctx.font = baseFont * 0.92 + 'px sans-serif';
     const addrMaxWidth = W - pad * 2;
     const words = alamat.split(' ');
@@ -425,7 +605,6 @@
     const blockHeight = timeFont * 1.15 + lineH * 2 + lineH * addrLines + lineH * 1.6 + pad;
     const barTop = H - blockHeight - pad * 0.5;
 
-    // gradient gelap dari bawah
     const grad = ctx.createLinearGradient(0, barTop, 0, H);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
     grad.addColorStop(0.35, 'rgba(0,0,0,0.55)');
@@ -435,14 +614,12 @@
 
     let cursorY = H - pad;
 
-    // ===== Kode Foto (paling bawah) =====
     ctx.textBaseline = 'alphabetic';
     ctx.font = 'bold ' + (baseFont * 0.8) + 'px sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.fillText('Kode Foto: ' + kodeFoto, pad, cursorY);
     cursorY -= lineH * 1.6;
 
-    // garis pembatas tipis
     ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -450,14 +627,12 @@
     ctx.lineTo(W - pad, cursorY + lineH * 0.3);
     ctx.stroke();
 
-    // ===== Alamat (wrap) =====
     ctx.font = baseFont * 0.92 + 'px sans-serif';
     ctx.fillStyle = '#ffffff';
     const addrStartY = cursorY - lineH * (addrLines - 1);
     wrapText(ctx, alamat, pad, addrStartY, addrMaxWidth, lineH);
     cursorY = addrStartY - lineH * 1.3;
 
-    // ===== Jam besar + divider + tanggal/hari =====
     ctx.font = 'bold ' + timeFont + 'px sans-serif';
     ctx.fillStyle = '#ffffff';
     const timeY = cursorY;
@@ -485,7 +660,6 @@
       const lp = 12;
       ctx.drawImage(logoImg, W - logoW - lp, lp, logoW, logoH);
 
-      // brand text pojok kanan bawah
       ctx.textAlign = 'right';
       ctx.font = 'bold ' + (baseFont * 0.85) + 'px sans-serif';
       ctx.fillStyle = BLUE_ACCENT;
@@ -510,6 +684,9 @@
     cameraStage.classList.add('d-none');
     previewStage.classList.remove('d-none');
     if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    clearInterval(clockTimer);
+    clearInterval(addressTimer);
     canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', 0.92);
     captureBtn.disabled = false;
     captureBtnText.textContent = 'Ambil Foto';
@@ -542,9 +719,8 @@
     fotoInput.files = dt.files;
     keteranganHidden.value = keteranganInput.value;
     uploadForm.submit();
+    stopEverythingAndClose();
   });
-
-  startCamera();
 })();
 </script>
 {% endblock %}
