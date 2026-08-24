@@ -35,9 +35,12 @@
     margin-top: 0.3rem;
   }
   #excluded_banks::placeholder,
-  #excluded_branches::placeholder {
+  #excluded_branches::placeholder,
+  #nilai_kpr_display::placeholder,
+  .rupiah-input::placeholder {
     color: #b8bfc7;
     font-size: 0.85rem;
+    font-weight: 400;
   }
   .hint-muted strong {
     color: #868e96;
@@ -47,6 +50,12 @@
     color: #9ca3af;
     background-color: transparent;
     font-weight: 600;
+  }
+  /* Kolom hasil ekstraksi PDF yang terisi: teks dibikin abu-abu spt hint filter,
+     biar gak ketuker sama field auto-hitung (Nilai KPR = Harga - DP) yang warnanya biru tegas. */
+  .table-modern .value-filled {
+    color: #9ca3af !important;
+    font-weight: 400 !important;
   }
   /* Samakan tinggi & perataan 2 card filter Bank/Cabang */
   #collapseFilters .row {
@@ -858,9 +867,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td class="fw-medium text-muted">{{ row.no }}</td>
                     <td class="text-start fw-semibold text-dark">{{ row.bank }}</td>
                     <td class="text-start text-muted small">{{ row.cabang }}</td>
-                    <td class="fw-medium">
+                    <td>
                       {% if row.loan_amount and row.loan_amount > 0 %}
-                        {{ row.loan_amount|floatformat:0|intcomma }}
+                        <span class="value-filled">{{ row.loan_amount|floatformat:0|intcomma }}</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
@@ -887,37 +896,37 @@ document.addEventListener("DOMContentLoaded", function () {
                         -
                       {% endif %}
                     </td>
-                    <td class="fw-semibold text-primary">
+                    <td>
                       {% if row.monthly_payment and row.monthly_payment > 0 %}
-                        {{ row.monthly_payment|floatformat:2|intcomma }}
+                        <span class="value-filled">{{ row.monthly_payment|floatformat:2|intcomma }}</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.total_payment and row.total_payment > 0 %}
-                        {{ row.total_payment|floatformat:2|intcomma }}
+                        <span class="value-filled">{{ row.total_payment|floatformat:2|intcomma }}</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.total_interest is not None and row.total_interest >= 0 %}
-                        {{ row.total_interest|floatformat:2|intcomma }}
+                        <span class="value-filled">{{ row.total_interest|floatformat:2|intcomma }}</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.annual_payment and row.annual_payment > 0 %}
-                        {{ row.annual_payment|floatformat:2|intcomma }}
+                        <span class="value-filled">{{ row.annual_payment|floatformat:2|intcomma }}</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
                     </td>
                     <td>
                       {% if row.mortgage_constant is not None %}
-                        {{ row.mortgage_constant|floatformat:2 }}%
+                        <span class="value-filled">{{ row.mortgage_constant|floatformat:2 }}%</span>
                       {% else %}
                         <span class="text-muted">-</span>
                       {% endif %}
