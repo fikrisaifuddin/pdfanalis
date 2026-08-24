@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}SLIK OJK Loan Calculator{% endblock %}</title>
+  <title>{% block title %}BTN Toolkit{% endblock %}</title>
   {% load static %}
 
   <!-- Favicon -->
@@ -243,20 +243,20 @@
   <aside class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
       <img src="{% static 'images/logo_btn_wt.png' %}" alt="Bank Tabungan Negara" class="brand-logo-img" />
-      <span class="brand-app-name">SLIK OJK<br>Loan Calc</span>
+      <span class="brand-app-name">BTN<br>Toolkit</span>
     </div>
 
     <nav class="sidebar-nav">
       {% url 'buktisurvei:index' as buktisurvei_url %}
 
-      <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}" title="Kalkulator Hutang">
+      <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}" title="Analisis Kredit SLIK">
         <i class="bi bi-calculator-fill"></i>
-        <span>Kalkulator Hutang</span>
+        <span>Analisis Kredit SLIK</span>
       </a>
 
-      <a href="{{ buktisurvei_url }}" class="nav-link {% if request.path == buktisurvei_url %}active{% endif %}" title="Bukti Survei">
+      <a href="{{ buktisurvei_url }}" class="nav-link {% if request.path == buktisurvei_url %}active{% endif %}" title="Kamera Survei">
         <i class="bi bi-camera-fill"></i>
-        <span>Bukti Survei</span>
+        <span>Kamera Survei</span>
       </a>
 
       <a href="#" class="nav-link" title="Laporan">
@@ -279,7 +279,7 @@
     </nav>
 
     <div class="sidebar-footer">
-      &copy; {{ now|date:"Y" }} SLIK OJK Loan Calculator
+      &copy; {{ now|date:"Y" }} BTN Toolkit
     </div>
   </aside>
 
@@ -293,7 +293,7 @@
       </button>
       <div class="topbar-mobile-brand">
         <img src="{% static 'images/logo_btn_blue.png' %}" alt="BTN" class="topbar-logo-mask" />
-        <span>SLIK OJK Loan Calc</span>
+        <span>BTN Toolkit</span>
       </div>
     </div>
 
@@ -319,7 +319,7 @@
     <!-- Footer -->
     <footer class="mt-5 py-3 text-center text-muted">
       <div class="container">
-        &copy; {{ now|date:"Y" }} SLIK OJK Loan Calculator. All rights reserved.
+        &copy; {{ now|date:"Y" }} BTN Toolkit. All rights reserved.
       </div>
     </footer>
   </div>
