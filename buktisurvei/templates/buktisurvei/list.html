@@ -1,8 +1,70 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-<h4 class="mb-3">Bukti Survei</h4>
 
+<!-- ============================================================
+     CARD UTAMA — membungkus header, tombol aksi, dan riwayat foto
+     dalam satu wadah konsisten, senada dengan halaman lain (card
+     putih, radius besar, shadow lembut).
+     ============================================================ -->
+<div class="survei-card">
+
+  <div class="survei-header">
+    <div class="survei-header-icon"><i class="bi bi-camera-fill"></i></div>
+    <div>
+      <h4 class="survei-title">Bukti Survei</h4>
+      <p class="survei-subtitle">Ambil foto lokasi survei lengkap dengan watermark waktu &amp; lokasi otomatis.</p>
+    </div>
+  </div>
+
+  <button type="button" id="openCameraBtn" class="btn btn-capture btn-capture-lg">
+    <i class="bi bi-camera-fill"></i> Buka Kamera
+  </button>
+
+  <div class="survei-section-title">
+    <i class="bi bi-clock-history"></i> Riwayat Bukti Survei
+    {% if daftar %}<span class="survei-count-badge">{{ daftar|length }}</span>{% endif %}
+  </div>
+
+  <div class="row g-3">
+    {% for f in daftar %}
+    <div class="col-6 col-md-3">
+      <div class="foto-card">
+        <img src="{{ f.foto.url }}" class="foto-img">
+        <div class="foto-actions">
+          <a href="{{ f.foto.url }}" download class="foto-icon-btn" title="Unduh">
+            <i class="bi bi-download"></i>
+          </a>
+          <form method="post" action="{% url 'buktisurvei:hapus' f.pk %}"
+                onsubmit="return confirm('Hapus foto ini?');" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="foto-icon-btn foto-icon-danger" title="Hapus">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </form>
+        </div>
+        <div class="foto-overlay">
+          {{ f.diambil_pada|date:"d M Y, H:i" }}
+          {% if f.keterangan %}<br><span class="foto-ket">{{ f.keterangan }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-images"></i></div>
+        <p class="empty-state-title">Belum ada bukti survei</p>
+        <p class="empty-state-sub">Foto yang kamu ambil akan muncul di sini</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- ============================================================
+     KAMERA FULLSCREEN
+     ============================================================ -->
 <div id="cameraStage" class="camera-fullscreen d-none">
   <div class="camera-frame-wrap bg-dark">
     <video id="videoPreview" autoplay playsinline muted></video>
@@ -67,47 +129,6 @@
   </div>
 </div>
 
-<button type="button" id="openCameraBtn" class="btn btn-capture mb-4">
-  <i class="bi bi-camera-fill"></i> Buka Kamera
-</button>
-
-<hr class="my-4">
-
-<h6 class="text-muted mb-3">Riwayat Bukti Survei</h6>
-<div class="row g-3">
-  {% for f in daftar %}
-  <div class="col-6 col-md-3">
-    <div class="foto-card">
-      <img src="{{ f.foto.url }}" class="foto-img">
-      <div class="foto-actions">
-        <a href="{{ f.foto.url }}" download class="foto-icon-btn" title="Unduh">
-          <i class="bi bi-download"></i>
-        </a>
-        <form method="post" action="{% url 'buktisurvei:hapus' f.pk %}"
-              onsubmit="return confirm('Hapus foto ini?');" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="foto-icon-btn foto-icon-danger" title="Hapus">
-            <i class="bi bi-trash-fill"></i>
-          </button>
-        </form>
-      </div>
-      <div class="foto-overlay">
-        {{ f.diambil_pada|date:"d M Y, H:i" }}
-        {% if f.keterangan %}<br><span class="foto-ket">{{ f.keterangan }}</span>{% endif %}
-      </div>
-    </div>
-  </div>
-  {% empty %}
-  <div class="col-12">
-    <div class="empty-state">
-      <div class="empty-state-icon"><i class="bi bi-images"></i></div>
-      <p class="empty-state-title">Belum ada bukti survei</p>
-      <p class="empty-state-sub">Foto yang kamu ambil akan muncul di sini</p>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
 <form id="uploadForm" method="post" enctype="multipart/form-data" class="d-none">
   {% csrf_token %}
   <input type="file" name="foto" id="fotoInput">
@@ -118,6 +139,83 @@
 
 {% block extra_css %}
 <style>
+  /* ============================================================
+     DESIGN TOKENS — dipakai bersama supaya radius/spacing/shadow
+     seragam di seluruh halaman ini (card, tombol, alert, foto).
+     ============================================================ */
+  :root {
+    --survei-radius-lg: 1.25rem;
+    --survei-radius-md: 0.9rem;
+    --survei-radius-sm: 0.6rem;
+    --survei-shadow: 0 4px 16px rgba(13, 38, 76, 0.08);
+    --survei-border: #e9edf3;
+    --survei-blue: var(--blue-1, #0d6efd);
+    --survei-blue-dark: var(--blue-dark, #0a58ca);
+    --survei-accent: #4da3ff;
+  }
+
+  /* ===== Card pembungkus utama halaman ===== */
+  .survei-card {
+    background: #fff;
+    border: 1px solid var(--survei-border);
+    border-radius: var(--survei-radius-lg);
+    box-shadow: var(--survei-shadow);
+    padding: 1.75rem;
+  }
+  .survei-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-bottom: 1.4rem;
+  }
+  .survei-header-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--survei-radius-sm);
+    background: #eaf1ff;
+    color: var(--survei-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+  }
+  .survei-title {
+    margin: 0 0 0.15rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+  .survei-subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #8a94a6;
+    line-height: 1.4;
+  }
+
+  .survei-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #6b7688;
+    margin: 1.9rem 0 1rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--survei-border);
+  }
+  .survei-count-badge {
+    background: #eaf1ff;
+    color: var(--survei-blue);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
   /* ===== Fullscreen kamera ala aplikasi Time Mark ===== */
   .camera-fullscreen {
     position: fixed;
@@ -160,7 +258,10 @@
     color: #fff;
     border: none;
     display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+    transition: background-color 0.15s ease;
   }
+  .camera-close-btn:hover { background: rgba(0,0,0,0.65); }
 
   /* ===== Watermark LIVE di atas video ===== */
   .live-overlay {
@@ -184,7 +285,11 @@
     color: #fff;
     padding: 1.4rem 1.1rem 1.1rem;
   }
-  .lo-kode { font-weight: 700; font-size: 0.8rem; }
+  .lo-kode {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
+  }
   .lo-divider-h { border-top: 1px solid rgba(255,255,255,0.35); margin: 0.4rem 0 0.6rem; }
   .lo-address {
     font-size: 0.85rem;
@@ -194,14 +299,15 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 0.6rem;
+    color: rgba(255,255,255,0.92);
   }
   .lo-time-row { display: flex; align-items: center; gap: 0.7rem; }
   .lo-time { font-weight: 700; font-size: 2.1rem; line-height: 1; }
-  .lo-vdivider { width: 3px; align-self: stretch; background: #4da3ff; border-radius: 2px; }
+  .lo-vdivider { width: 3px; align-self: stretch; background: var(--survei-accent); border-radius: 2px; }
   .lo-date-col { display: flex; flex-direction: column; font-size: 0.85rem; }
   .lo-day { color: rgba(255,255,255,0.85); }
 
-  /* ===== Kontrol bawah ===== */
+  /* ===== Kontrol bawah kamera ===== */
   .camera-controls {
     padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
     background: #000;
@@ -209,19 +315,37 @@
     flex-direction: column;
     gap: 0.7rem;
   }
-  .preview-controls { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .preview-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+  .preview-controls .btn {
+    flex: 1 1 auto;
+    min-width: 110px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
   .btn-capture {
-    background: linear-gradient(135deg, var(--blue-1), var(--blue-dark));
+    background: linear-gradient(135deg, var(--survei-blue), var(--survei-blue-dark));
     color: #fff;
     border: none;
     border-radius: 999px;
     padding: 0.7rem 1.4rem;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    transition: opacity 0.15s ease, box-shadow 0.15s ease;
   }
   .btn-capture:hover { color: #fff; opacity: 0.92; }
-  .btn-capture:disabled { opacity: 0.5; }
+  .btn-capture:disabled { opacity: 0.5; box-shadow: none; }
+  .btn-capture-lg {
+    padding: 0.85rem 1.6rem;
+    font-size: 0.95rem;
+  }
 
+  /* ===== Alert izin kamera / lokasi ===== */
   .perm-alert {
     position: absolute;
     left: 1rem; right: 1rem; top: 50%;
@@ -232,7 +356,7 @@
     align-items: flex-start;
     background: linear-gradient(135deg, #fff8e6, #fff1cc);
     border: 1px solid #ffe1a1;
-    border-radius: 1rem;
+    border-radius: var(--survei-radius-md);
     padding: 1rem 1.1rem;
     box-shadow: 0 4px 14px rgba(255, 193, 7, 0.15);
   }
@@ -252,15 +376,22 @@
     background: #ffc107; color: #402d00; border: none; border-radius: 999px;
     padding: 0.4rem 1.1rem; font-weight: 600; font-size: 0.82rem;
     display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: background-color 0.15s ease;
   }
   .perm-alert-btn:hover { background: #ffca2c; }
 
+  /* ===== Kartu foto riwayat ===== */
   .foto-card {
     position: relative;
-    border-radius: 0.9rem;
+    border-radius: var(--survei-radius-md);
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(13, 38, 76, 0.1);
+    box-shadow: var(--survei-shadow);
     background: #000;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .foto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(13, 38, 76, 0.14);
   }
   .foto-img { width: 100%; height: 180px; object-fit: cover; display: block; }
   .foto-overlay {
@@ -277,17 +408,20 @@
     width: 30px; height: 30px;
     display: inline-flex; align-items: center; justify-content: center;
     background: rgba(255,255,255,0.85);
-    color: var(--blue-1);
+    color: var(--survei-blue);
     border: none; border-radius: 50%;
     font-size: 0.85rem;
+    transition: background-color 0.15s ease;
   }
+  .foto-icon-btn:hover { background: #ffffff; }
   .foto-icon-danger { color: #dc3545; }
 
+  /* ===== Empty state, selaras dgn radius/border card lain ===== */
   .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    border: 2px dashed #dbe4f0;
-    border-radius: 1rem;
+    border: 2px dashed var(--survei-border);
+    border-radius: var(--survei-radius-md);
     background: #f8fafc;
   }
   .empty-state-icon {
@@ -295,12 +429,17 @@
     margin: 0 auto 0.8rem;
     border-radius: 50%;
     background: #eaf1ff;
-    color: var(--blue-1, #0d6efd);
+    color: var(--survei-blue);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem;
   }
   .empty-state-title { font-weight: 600; color: #46536b; margin-bottom: 0.2rem; }
   .empty-state-sub { font-size: 0.85rem; color: #8a94a6; margin: 0; }
+
+  @media (max-width: 576px) {
+    .survei-card { padding: 1.25rem; border-radius: var(--survei-radius-md); }
+    .btn-capture-lg { width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.4rem; }
+  }
 </style>
 {% endblock %}
 
