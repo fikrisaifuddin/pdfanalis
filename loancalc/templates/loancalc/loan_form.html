@@ -106,6 +106,87 @@
   }
   .stat-card-elegant .stat-value.text-money { color: #343a40; font-size: 1.25rem !important; }
 
+  /* ============================================================
+     BADGE "SOFT" — pengganti bg-success/bg-warning/bg-danger solid.
+     Dipakai konsisten di: badge rekomendasi, badge status 3 aspek kredit,
+     dan popup kualitas bermasalah (lihat getKualitasBadgeStyle di JS).
+     Tujuannya: satu bahasa visual, tidak berebut warna dengan elemen lain.
+     ============================================================ */
+  .badge-soft {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    padding: 0.4em 0.9em;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    white-space: nowrap;
+  }
+  .badge-soft-lg {
+    font-size: 0.82rem;
+    padding: 0.5em 1.1em;
+  }
+  .badge-soft-success { background:#e7f5ec; color:#2f9e5b; border-color:#b7e4c7; }
+  .badge-soft-warning { background:#fff8e1; color:#997404; border-color:#ffe69c; }
+  .badge-soft-danger  { background:#f8d7da; color:#842029; border-color:#f1aeb5; }
+  .badge-soft-info    { background:#e7f1ff; color:#0d6efd; border-color:#b6d4fe; }
+  .badge-soft-neutral { background:#e9ecef; color:#495057; border-color:#dee2e6; }
+
+  /* ============================================================
+     CARD "ANALISIS 3 ASPEK KREDIT" — monokrom, satu aksen biru
+     hanya untuk angka hasil akhir (highlight row).
+     ============================================================ */
+  .kredit-section {
+    background-color: #ffffff;
+    border: 1px solid #eef0f2;
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  .kredit-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    padding: 1rem 1.1rem;
+    height: 100%;
+  }
+  .kredit-card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #868e96;
+  }
+  .kredit-card-desc {
+    font-size: 0.82rem;
+    color: #868e96;
+    margin: 0.5rem 0 0.75rem;
+  }
+  .kredit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.22rem 0;
+    color: #495057;
+  }
+  .kredit-row .label { color: #868e96; }
+  .kredit-row .value { font-weight: 600; color: #343a40; white-space: nowrap; }
+  .kredit-row.divider {
+    border-top: 1px solid #eef0f2;
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .kredit-row.highlight {
+    border-top: 1px solid #eef0f2;
+    padding-top: 0.6rem;
+    margin-top: 0.35rem;
+  }
+  .kredit-row.highlight .label { color: #495057; font-weight: 600; }
+  .kredit-row.highlight .value { color: #0d6efd; font-size: 1rem; font-weight: 700; }
+
   /* Tabel hasil: rapikan lebar kolom, cegah teks kepotong/wrap berantakan */
   .table-modern {
     min-width: 1300px;
@@ -166,10 +247,6 @@
 
   /* Tombol Filter Pengecualian: saat aktif/terbuka (aria-expanded="true"),
      background jadi biru solid dan teks otomatis jadi putih supaya kontras. */
-  #collapseFilters ~ * ,
-  .btn-filter-toggle {
-    /* placeholder, tidak dipakai - lihat aturan di bawah */
-  }
   button[data-bs-toggle="collapse"][data-bs-target="#collapseFilters"],
   button[data-bs-toggle="collapse"][data-bs-target="#collapseKpr"] {
     border-color: #0d6efd !important;
@@ -272,7 +349,7 @@ function getFilteredFacilities(mode) {
     });
 }
 
-// Warna badge kualitas berdasarkan digit pertama (2=kuning, 3-5=merah)
+// Warna badge kualitas berdasarkan digit pertama (2=kuning, 3-5=merah) — versi "soft"
 function getKualitasBadgeStyle(kualitasStr) {
     const m = (kualitasStr || "").trim().match(/^(\d)/);
     const num = m ? m[1] : null;
@@ -285,7 +362,7 @@ function getKualitasBadgeStyle(kualitasStr) {
     return { bg: "#e2e3e5", color: "#41464b", border: "#d3d6d8" };
 }
 
-// Warna badge Kondisi: hijau kalau sudah Lunas, biru kalau masih Aktif
+// Warna badge Kondisi: hijau kalau sudah Lunas, biru kalau masih Aktif — versi "soft"
 function getKondisiBadgeStyle(kondisiStr) {
     const k = (kondisiStr || "").trim().toLowerCase();
     if (k === "lunas") {
@@ -653,18 +730,26 @@ document.addEventListener("DOMContentLoaded", function () {
     {% if result %}
       <hr class="my-4 text-muted opacity-25">
 
-      <!-- DASHBOARD ANALISIS 3 ASPEK KREDIT (KARAKTER, KAPASITAS, KOLATERAL) -->
+      <!-- ============================================================
+           DASHBOARD ANALISIS 3 ASPEK KREDIT (KARAKTER, KAPASITAS, KOLATERAL)
+           Versi monokrom: satu warna aksen biru untuk angka final,
+           badge status pakai gaya "soft" (bukan solid Bootstrap).
+           ============================================================ -->
       {% if result.analisis_kredit %}
-        <div class="card border-0 bg-light rounded-4 p-4 mb-4 shadow-sm">
+        <div class="kredit-section mb-4">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h5 class="fw-bold mb-0 text-dark">
               <i class="bi bi-shield-check text-primary me-2"></i> Hasil Penilaian Analisis 3 Aspek Kredit
             </h5>
             <div>
               {% if result.analisis_kredit.is_layak %}
-                <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i> REKOMENDASI: LAYAK (MEMENUHI)</span>
+                <span class="badge-soft badge-soft-lg badge-soft-success">
+                  <i class="bi bi-check-circle-fill"></i> REKOMENDASI: LAYAK (MEMENUHI)
+                </span>
               {% else %}
-                <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i> REKOMENDASI: PERLU EVALUASI</span>
+                <span class="badge-soft badge-soft-lg badge-soft-warning">
+                  <i class="bi bi-exclamation-triangle-fill"></i> REKOMENDASI: PERLU EVALUASI
+                </span>
               {% endif %}
             </div>
           </div>
@@ -672,92 +757,101 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="row g-3">
             <!-- 1. ASPEK KARAKTER -->
             <div class="col-md-4">
-              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold text-uppercase small text-secondary">1. Karakter (Histori SLIK)</span>
-                  <span class="badge bg-{{ result.analisis_kredit.karakter.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.karakter.status }}</span>
+              <div class="kredit-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="kredit-card-title">1. Karakter (Histori SLIK)</span>
+                  <span class="badge-soft
+                    {% if result.analisis_kredit.karakter.badge == "danger" %}badge-soft-danger
+                    {% elif result.analisis_kredit.karakter.badge == "warning" %}badge-soft-warning
+                    {% elif result.analisis_kredit.karakter.badge == "success" %}badge-soft-success
+                    {% else %}badge-soft-neutral{% endif %}">
+                    {{ result.analisis_kredit.karakter.status }}
+                  </span>
                 </div>
-                <p class="small text-muted mb-2">{{ result.analisis_kredit.karakter.desc }}</p>
-                <hr class="my-2 text-muted opacity-25">
-                <div class="small">
-                  <div class="d-flex justify-content-between">
-                    <span class="text-muted">Fasilitas Bermasalah:</span>
-                    <span class="fw-bold {% if result.problem_facilities %}text-danger{% else %}text-success{% endif %}">
-                      {{ result.problem_facilities|length }} Fasilitas
-                    </span>
-                  </div>
+                <p class="kredit-card-desc">{{ result.analisis_kredit.karakter.desc }}</p>
+                <div class="kredit-row divider">
+                  <span class="label">Fasilitas Bermasalah:</span>
+                  <span class="value">{{ result.problem_facilities|length }} Fasilitas</span>
                 </div>
               </div>
             </div>
 
             <!-- 2. ASPEK KAPASITAS -->
             <div class="col-md-4">
-              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold text-uppercase small text-secondary">2. Kapasitas (Kemampuan Bayar)</span>
-                  <span class="badge bg-{{ result.analisis_kredit.kapasitas.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.kapasitas.status }}</span>
+              <div class="kredit-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="kredit-card-title">2. Kapasitas (Kemampuan Bayar)</span>
+                  <span class="badge-soft
+                    {% if result.analisis_kredit.kapasitas.badge == "danger" %}badge-soft-danger
+                    {% elif result.analisis_kredit.kapasitas.badge == "warning" %}badge-soft-warning
+                    {% elif result.analisis_kredit.kapasitas.badge == "success" %}badge-soft-success
+                    {% else %}badge-soft-neutral{% endif %}">
+                    {{ result.analisis_kredit.kapasitas.status }}
+                  </span>
                 </div>
-                <p class="small text-muted mb-2">{{ result.analisis_kredit.kapasitas.desc }}</p>
-                <hr class="my-2 text-muted opacity-25">
-                <div class="small">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Status:</span>
-                    <span class="fw-bold text-dark">{{ result.analisis_kredit.label_pekerjaan }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Gaji Diakui ({{ result.analisis_kredit.persentase_gaji|floatformat:0 }}%):</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.gaji_diakui|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1 text-danger">
-                    <span>Hutang SLIK Eksisting:</span>
-                    <span class="fw-bold">- Rp {{ result.analisis_kredit.total_monthly_slik|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1 text-primary border-top pt-1">
-                    <span class="fw-semibold">Kapasitas Bulanan:</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.kapasitas_bulanan|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1 text-secondary">
-                    <span>Kapasitas Tahunan (x12):</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.kapasitas_tahunan|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1 text-dark">
-                    <span>Bunga Floating:</span>
-                    <span class="fw-bold">{{ result.analisis_kredit.bunga_floating|floatformat:2 }}%</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-success pt-1 border-top fs-6">
-                    <span class="fw-bold">Maks. Plafon KPR:</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.maks_plafon_kpr|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
+                <p class="kredit-card-desc">{{ result.analisis_kredit.kapasitas.desc }}</p>
+
+                <div class="kredit-row">
+                  <span class="label">Status:</span>
+                  <span class="value">{{ result.analisis_kredit.label_pekerjaan }}</span>
+                </div>
+                <div class="kredit-row">
+                  <span class="label">Gaji Diakui ({{ result.analisis_kredit.persentase_gaji|floatformat:0 }}%):</span>
+                  <span class="value">Rp {{ result.analisis_kredit.gaji_diakui|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row">
+                  <span class="label">Hutang SLIK Eksisting:</span>
+                  <span class="value">- Rp {{ result.analisis_kredit.total_monthly_slik|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row divider">
+                  <span class="label">Kapasitas Bulanan:</span>
+                  <span class="value">Rp {{ result.analisis_kredit.kapasitas_bulanan|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row">
+                  <span class="label">Kapasitas Tahunan (x12):</span>
+                  <span class="value">Rp {{ result.analisis_kredit.kapasitas_tahunan|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row">
+                  <span class="label">Bunga Floating:</span>
+                  <span class="value">{{ result.analisis_kredit.bunga_floating|floatformat:2 }}%</span>
+                </div>
+                <div class="kredit-row highlight">
+                  <span class="label">Maks. Plafon KPR:</span>
+                  <span class="value">Rp {{ result.analisis_kredit.maks_plafon_kpr|floatformat:0|intcomma|default:"0" }}</span>
                 </div>
               </div>
             </div>
 
             <!-- 3. ASPEK KOLATERAL -->
             <div class="col-md-4">
-              <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold text-uppercase small text-secondary">3. Kolateral (Nilai Agunan)</span>
-                  <span class="badge bg-{{ result.analisis_kredit.kolateral.badge }} rounded-pill px-2.5 py-1">{{ result.analisis_kredit.kolateral.status }}</span>
+              <div class="kredit-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="kredit-card-title">3. Kolateral (Nilai Agunan)</span>
+                  <span class="badge-soft
+                    {% if result.analisis_kredit.kolateral.badge == "danger" %}badge-soft-danger
+                    {% elif result.analisis_kredit.kolateral.badge == "warning" %}badge-soft-warning
+                    {% elif result.analisis_kredit.kolateral.badge == "success" %}badge-soft-success
+                    {% else %}badge-soft-neutral{% endif %}">
+                    {{ result.analisis_kredit.kolateral.status }}
+                  </span>
                 </div>
-                <p class="small text-muted mb-2">{{ result.analisis_kredit.kolateral.desc }}</p>
-                <hr class="my-2 text-muted opacity-25">
-                <div class="small">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Harga Jual Agunan:</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.harga_jual|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Uang Muka (DP):</span>
-                    <span class="fw-bold">Rp {{ result.analisis_kredit.uang_muka|floatformat:0|intcomma|default:"0" }} ({{ result.analisis_kredit.dp_percent|floatformat:1 }}%)</span>
-                  </div>
-                  <div class="d-flex justify-content-between border-top pt-1 mb-1">
-                    <span class="text-muted">Nilai KPR (Plafon):</span>
-                    <span class="fw-bold text-primary">Rp {{ result.analisis_kredit.nilai_kpr|floatformat:0|intcomma|default:"0" }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between text-dark pt-1 border-top">
-                    <span class="fw-semibold">LTV Ratio:</span>
-                    <span class="fw-bold">{{ result.analisis_kredit.ltv_ratio|floatformat:2 }}%</span>
-                  </div>
+                <p class="kredit-card-desc">{{ result.analisis_kredit.kolateral.desc }}</p>
+
+                <div class="kredit-row">
+                  <span class="label">Harga Jual Agunan:</span>
+                  <span class="value">Rp {{ result.analisis_kredit.harga_jual|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row">
+                  <span class="label">Uang Muka (DP):</span>
+                  <span class="value">Rp {{ result.analisis_kredit.uang_muka|floatformat:0|intcomma|default:"0" }} ({{ result.analisis_kredit.dp_percent|floatformat:1 }}%)</span>
+                </div>
+                <div class="kredit-row divider">
+                  <span class="label">Nilai KPR (Plafon):</span>
+                  <span class="value">Rp {{ result.analisis_kredit.nilai_kpr|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row highlight">
+                  <span class="label">LTV Ratio:</span>
+                  <span class="value">{{ result.analisis_kredit.ltv_ratio|floatformat:2 }}%</span>
                 </div>
               </div>
             </div>
