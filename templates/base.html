@@ -336,7 +336,7 @@
     if (openBtn) {
       openBtn.addEventListener("click", function () { body.classList.add("sidebar-open"); });
     }
-    if (overlay) {
+    if (overlay) { 
       overlay.addEventListener("click", function () { body.classList.remove("sidebar-open"); });
     }
 
@@ -357,7 +357,7 @@
         if (e.target.closest(".nav-link")) return; // jangan toggle kalau klik menu
         const nowCollapsed = !body.classList.contains("sidebar-collapsed");
         applyCollapsedState(nowCollapsed);
-        localStorage.setItem("sidebarCollapsed", nowCollapsed ? "1" : "0");
+        localStorage.setItem("sidebarCollapsed", nowCollapsed ? "1" : "0"); //kaka
       });
     }
   </script>
