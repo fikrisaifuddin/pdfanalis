@@ -248,6 +248,7 @@
 
     <nav class="sidebar-nav">
       {% url 'buktisurvei:index' as buktisurvei_url %}
+      {% url 'wablast:index' as wablast_url %}
 
       <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}" title="Analisis Kredit SLIK">
         <i class="bi bi-calculator-fill"></i>
@@ -259,23 +260,15 @@
         <span>Kamera Survei</span>
       </a>
 
-      <a href="#" class="nav-link" title="Laporan">
-        <i class="bi bi-bar-chart-fill"></i>
-        <span>Laporan</span>
+      <a href="{{ wablast_url }}" class="nav-link {% if request.path == wablast_url %}active{% endif %}" title="WhatsApp Blast">
+        <i class="bi bi-whatsapp"></i>
+        <span>WhatsApp Blast</span>
       </a>
 
       <a href="#" class="nav-link" title="Pengaturan">
         <i class="bi bi-gear-fill"></i>
         <span>Pengaturan</span>
       </a>
-
-      {% comment %}
-      Tambahkan menu baru di sini, contoh:
-      <a href="/menu-baru/" class="nav-link {% if request.path == '/menu-baru/' %}active{% endif %}" title="Nama Menu">
-        <i class="bi bi-graph-up"></i>
-        <span>Nama Menu</span>
-      </a>
-      {% endcomment %}
     </nav>
 
     <div class="sidebar-footer">
@@ -349,15 +342,13 @@
 
     applyCollapsedState(localStorage.getItem("sidebarCollapsed") === "1");
 
-    // Klik di area sidebar (bukan di menu link) untuk toggle collapse/expand,
-    // hanya berlaku di layar desktop (>= 992px)
     if (sidebarEl) {
       sidebarEl.addEventListener("click", function (e) {
-        if (window.innerWidth < 992) return; // di mobile, sidebar pakai overlay, bukan collapse
-        if (e.target.closest(".nav-link")) return; // jangan toggle kalau klik menu
+        if (window.innerWidth < 992) return;
+        if (e.target.closest(".nav-link")) return;
         const nowCollapsed = !body.classList.contains("sidebar-collapsed");
         applyCollapsedState(nowCollapsed);
-        localStorage.setItem("sidebarCollapsed", nowCollapsed ? "1" : "0"); //kaka
+        localStorage.setItem("sidebarCollapsed", nowCollapsed ? "1" : "0");
       });
     }
   </script>
