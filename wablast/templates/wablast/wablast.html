@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Blast - BTN Toolkit{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 mt-2">
+  <div>
+    <h4 class="mb-0 fw-bold text-primary">WhatsApp Blast</h4>
+    <p class="text-muted mb-0" style="font-size:0.9rem;">
+      Upload data nasabah, pesan otomatis dipersonalisasi per nama, kirim manual satu per satu lewat WhatsApp.
+    </p>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label for="{{ form.excel_file.id_for_label }}" class="form-label fw-semibold">
+            {{ form.excel_file.label }}
+          </label>
+          {{ form.excel_file }}
+          <div class="form-text">{{ form.excel_file.help_text }}</div>
+        </div>
+        <div class="col-md-7">
+          <label for="{{ form.template.id_for_label }}" class="form-label fw-semibold">
+            {{ form.template.label }}
+          </label>
+          {{ form.template }}
+          <div class="form-text">{{ form.template.help_text }}</div>
+        </div>
+      </div>
+
+      {% if form.excel_file.errors or form.template.errors %}
+        <div class="alert alert-danger mt-3 py-2 mb-0">
+          {{ form.excel_file.errors }}
+          {{ form.template.errors }}
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary mt-3 px-4">
+        <i class="bi bi-upload me-1"></i> Proses Excel
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if kontak_list is not None %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0">Daftar Kontak ({{ kontak_list|length }})</h6>
+        <span class="text-muted" style="font-size:0.85rem;">
+          Klik "Buka WhatsApp" per kontak, lalu kirim manual di WhatsApp.
+        </span>
+      </div>
+
+      {% if kontak_list %}
+        <div class="table-responsive">
+          <table class="table align-middle" id="tabelKontak">
+            <thead>
+              <tr class="text-muted" style="font-size:0.8rem;">
+                <th style="width:36px;"></th>
+                <th>Nama</th>
+                <th>No HP</th>
+                <th>Preview Pesan</th>
+                <th style="width:160px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for k in kontak_list %}
+                <tr class="{% if not k.valid %}table-warning{% endif %}">
+                  <td>
+                    <input type="checkbox" class="form-check-input chk-kontak" {% if not k.valid %}disabled{% endif %}>
+                  </td>
+                  <td class="fw-semibold">{{ k.nama }}</td>
+                  <td>
+                    {% if k.valid %}
+                      {{ k.no_hp_formatted }}
+                    {% else %}
+                      <span class="text-danger" title="Nomor tidak terbaca / formatnya tidak valid">{{ k.no_hp_asli|default:"-" }} (tidak valid)</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size:0.85rem; max-width:340px;">{{ k.pesan }}</td>
+                  <td>
+                    {% if k.valid %}
+                      <a href="{{ k.wa_link }}" target="_blank" rel="noopener"
+                         class="btn btn-success btn-sm w-100 btn-buka-wa">
+                        <i class="bi bi-whatsapp me-1"></i> Buka WhatsApp
+                      </a>
+                    {% else %}
+                      <button class="btn btn-secondary btn-sm w-100" disabled>Nomor invalid</button>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">Tidak ada data kontak yang terbaca dari file yang diupload.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+<script>
+  document.querySelectorAll(".btn-buka-wa").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var row = btn.closest("tr");
+      var chk = row.querySelector(".chk-kontak");
+      if (chk) chk.checked = true;
+      row.classList.add("opacity-50");
+    });
+  });
+</script>
+{% endblock %}
