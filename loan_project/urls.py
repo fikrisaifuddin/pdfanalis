@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('loancalc.urls')),
     path('bukti-survei/', include('buktisurvei.urls')),
+    path("wablast/", include("wablast.urls")),
 ]
 
 if settings.DEBUG:
