@@ -66,7 +66,6 @@
   }
   .badge-soft-neutral { background:#e9ecef; color:#495057; border-color:#dee2e6; }
 
-  /* Badge nomor valid: solid biru, teks putih */
   .badge-nomor {
     font-family: 'Courier New', monospace;
     font-size: 0.78rem;
@@ -75,8 +74,6 @@
     color: #ffffff;
     border-color: #0d6efd;
   }
-
-  /* Badge nomor invalid: solid merah, teks putih */
   .badge-invalid {
     background-color: #dc3545;
     color: #ffffff;
@@ -98,7 +95,6 @@
     box-shadow: inset 0 1px 0 #dee2e6;
   }
 
-  /* Tombol WA: solid hijau, teks putih */
   .btn-wa {
     background-color: #25D366;
     color: #ffffff;
@@ -118,7 +114,7 @@
     color: #ffffff;
   }
 
-  tr.row-sent {
+  tr.row-sent, .kontak-card.row-sent {
     opacity: 0.55;
   }
 
@@ -131,6 +127,33 @@
     font-weight: 700;
     color: #495057;
     font-size: 0.92rem;
+  }
+
+  /* ===== Kartu kontak khusus mobile ===== */
+  .kontak-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: #ffffff;
+    margin-bottom: 0.7rem;
+  }
+  .kontak-card .kontak-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .kontak-card .kontak-nama {
+    font-weight: 700;
+    color: #212529;
+    font-size: 0.95rem;
+  }
+  .kontak-card .kontak-pesan {
+    font-size: 0.82rem;
+    color: #868e96;
+    margin: 0.5rem 0 0.75rem;
+    line-height: 1.4;
   }
 </style>
 {% endblock %}
@@ -207,7 +230,8 @@
           </div>
         </div>
 
-        <div class="table-responsive rounded-3 border">
+        <!-- Desktop: tabel -->
+        <div class="d-none d-md-block table-responsive rounded-3 border">
           <table class="table table-hover align-middle mb-0 table-modern" id="tabelKontak">
             <thead class="table-light border-bottom text-uppercase fw-bold text-secondary">
               <tr>
@@ -252,6 +276,38 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile: card list -->
+        <div class="d-block d-md-none">
+          {% for k in kontak_list %}
+            <div class="kontak-card">
+              <div class="kontak-card-header">
+                <div class="d-flex align-items-center gap-2">
+                  <input type="checkbox" class="form-check-input chk-kontak" {% if not k.valid %}disabled{% endif %}>
+                  <span class="kontak-nama">{{ k.nama }}</span>
+                </div>
+                {% if k.valid %}
+                  <span class="badge-soft badge-nomor">
+                    <i class="bi bi-telephone-fill"></i> {{ k.no_hp_formatted }}
+                  </span>
+                {% else %}
+                  <span class="badge-soft badge-invalid">
+                    <i class="bi bi-exclamation-triangle-fill"></i> tidak valid
+                  </span>
+                {% endif %}
+              </div>
+              <div class="kontak-pesan">{{ k.pesan }}</div>
+              {% if k.valid %}
+                <a href="{{ k.wa_link }}" target="_blank" rel="noopener"
+                   class="btn btn-wa btn-sm w-100 btn-buka-wa">
+                  <i class="bi bi-whatsapp me-1"></i> Buka WhatsApp
+                </a>
+              {% else %}
+                <button class="btn btn-sm w-100 badge-soft-neutral border-0" disabled>Nomor invalid</button>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       {% else %}
         <div class="alert alert-warning border-0 shadow-sm rounded-3" role="alert">
           Tidak ada data kontak yang terbaca dari file yang diupload.
@@ -264,7 +320,7 @@
 <script>
   document.querySelectorAll(".btn-buka-wa").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var row = btn.closest("tr");
+      var row = btn.closest("tr") || btn.closest(".kontak-card");
       var chk = row.querySelector(".chk-kontak");
       if (chk) chk.checked = true;
       row.classList.add("row-sent");
