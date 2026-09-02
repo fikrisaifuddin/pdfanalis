@@ -64,9 +64,24 @@
     gap: 0.35em;
     white-space: nowrap;
   }
-  .badge-soft-success { background:#e7f5ec; color:#2f9e5b; border-color:#b7e4c7; }
-  .badge-soft-danger  { background:#f8d7da; color:#842029; border-color:#f1aeb5; }
   .badge-soft-neutral { background:#e9ecef; color:#495057; border-color:#dee2e6; }
+
+  /* Badge nomor valid: solid biru, teks putih */
+  .badge-nomor {
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+    background-color: #0d6efd;
+    color: #ffffff;
+    border-color: #0d6efd;
+  }
+
+  /* Badge nomor invalid: solid merah, teks putih */
+  .badge-invalid {
+    background-color: #dc3545;
+    color: #ffffff;
+    border-color: #dc3545;
+  }
 
   .table-modern th {
     letter-spacing: 0.5px;
@@ -83,23 +98,24 @@
     box-shadow: inset 0 1px 0 #dee2e6;
   }
 
+  /* Tombol WA: solid hijau, teks putih */
   .btn-wa {
-    background-color: #e7f5ec;
-    color: #2f9e5b;
-    border: 1px solid #b7e4c7;
+    background-color: #25D366;
+    color: #ffffff;
+    border: 1px solid #25D366;
     font-weight: 600;
     font-size: 0.82rem;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
   }
   .btn-wa:hover {
-    background-color: #2f9e5b;
+    background-color: #1ebe5a;
+    border-color: #1ebe5a;
     color: #ffffff;
-    border-color: #2f9e5b;
   }
   .btn-wa.row-done {
-    background-color: #e9ecef;
-    color: #868e96;
-    border-color: #dee2e6;
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #ffffff;
   }
 
   tr.row-sent {
@@ -111,7 +127,6 @@
     padding-bottom: 0.55rem;
   }
 
-  /* Label field, biar konsisten sama modul lain (fw-bold text-secondary) */
   .form-label-wablast {
     font-weight: 700;
     color: #495057;
@@ -212,11 +227,13 @@
                   <td class="fw-semibold text-dark">{{ k.nama }}</td>
                   <td>
                     {% if k.valid %}
-                      <span class="badge-soft badge-soft-success">{{ k.no_hp_formatted }}</span>
+                      <span class="badge-soft badge-nomor">
+                        <i class="bi bi-telephone-fill"></i> {{ k.no_hp_formatted }}
+                      </span>
                     {% else %}
-                      <span class="badge-soft badge-soft-danger" title="Nomor tidak terbaca / formatnya tidak valid">
-                        {{ k.no_hp_asli|default:"-" }} tidak valid
-                      </span> 
+                      <span class="badge-soft badge-invalid" title="Nomor tidak terbaca / formatnya tidak valid">
+                        <i class="bi bi-exclamation-triangle-fill"></i> {{ k.no_hp_asli|default:"-" }} tidak valid
+                      </span>
                     {% endif %}
                   </td>
                   <td class="small text-muted" style="max-width:340px; white-space:normal;">{{ k.pesan }}</td>
