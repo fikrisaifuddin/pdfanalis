@@ -1,6 +1,4 @@
 import re
-from urllib.parse import quote
-
 from django.contrib import messages
 from django.shortcuts import render
 
@@ -88,10 +86,9 @@ def index(request):
                 if not nama and not hp_cell:
                     continue
 
-                pesan = template_text.replace("{nama}", nama or "-")
-                wa_link = None
-                if nomor_formatted:
-                    wa_link = f"https://wa.me/{nomor_formatted}?text={quote(pesan)}"
+                # {sapaan} SENGAJA belum diganti di sini, biarkan tetap "{sapaan}"
+                # supaya bisa diisi belakangan (di browser) sesuai dropdown per baris.
+                pesan_raw = template_text.replace("{nama}", nama or "-")
 
                 kontak_list.append(
                     {
@@ -99,8 +96,7 @@ def index(request):
                         "nama": nama or "(tanpa nama)",
                         "no_hp_asli": hp_cell,
                         "no_hp_formatted": nomor_formatted,
-                        "pesan": pesan,
-                        "wa_link": wa_link,
+                        "pesan_raw": pesan_raw,
                         "valid": nomor_formatted is not None,
                     }
                 )
