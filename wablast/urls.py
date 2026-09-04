@@ -6,4 +6,4 @@ app_name = "wablast"
 
 urlpatterns = [
     path("", views.index, name="index"),
-]
+] 
