@@ -1,96 +1,273 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}WhatsApp Blast - BTN Toolkit{% endblock %}
 
-{% block content %}
-<div class="d-flex align-items-center justify-content-between mb-3 mt-2">
-  <div>
-    <h4 class="mb-0 fw-bold text-primary">WhatsApp Blast</h4>
-    <p class="text-muted mb-0" style="font-size:0.9rem;">
-      Upload data nasabah, pesan otomatis dipersonalisasi per nama, kirim manual satu per satu lewat WhatsApp.
-    </p>
-  </div>
-</div>
+{% block extra_css %}
+<style>
+  .upload-zone {
+    border: 2px dashed #dee2e6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+  }
+  .hint-muted {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.3rem;
+  }
 
-<div class="card border-0 shadow-sm mb-4">
+  .stat-card-elegant {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.6rem;
+    padding: 0.9rem 1.1rem !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .stat-card-elegant .stat-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    font-size: 1.6rem;
+  }
+  .stat-card-elegant .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #868e96;
+    margin-bottom: 0.15rem !important;
+  }
+  .stat-card-elegant .stat-value {
+    color: #343a40;
+    font-weight: 600;
+    font-size: 1.15rem !important;
+    line-height: 1.3;
+  }
+
+  .nomor-hp {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #495057;
+    font-weight: 500;
+  }
+  .nomor-hp i {
+    margin-right: 0.35rem;
+    color: #adb5bd;
+  }
+
+  .table-modern th {
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+  }
+  .table-modern th, .table-modern td {
+    vertical-align: middle;
+  }
+  .table-modern tbody tr:hover {
+    background-color: #f3f7ff;
+  }
+  .table-modern tbody.table-group-divider {
+    border-top: none !important;
+    box-shadow: inset 0 1px 0 #dee2e6;
+  }
+
+  .btn-wa {
+    background-color: #128C7E;
+    color: #ffffff;
+    border: 1px solid #128C7E;
+    font-weight: 600;
+    font-size: 0.82rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .btn-wa:hover {
+    background-color: #0e6b60;
+    border-color: #0e6b60;
+    color: #ffffff;
+  }
+  .btn-wa.row-done {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #ffffff;
+  }
+
+  .text-invalid-label {
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+
+  tr.row-sent, .kontak-card.row-sent {
+    opacity: 0.55;
+  }
+
+  #submit-btn-wablast {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .form-label-wablast {
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.92rem;
+  }
+
+  .sapaan-select {
+    font-size: 0.8rem;
+    padding: 0.25rem 1.6rem 0.25rem 0.5rem;
+    border-radius: 0.4rem;
+  }
+
+  .kontak-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    background: #ffffff;
+    margin-bottom: 0.7rem;
+  }
+  .kontak-card .kontak-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .kontak-card .kontak-nama {
+    font-weight: 700;
+    color: #212529;
+    font-size: 0.95rem;
+  }
+  .kontak-card .kontak-pesan {
+    font-size: 0.82rem;
+    color: #868e96;
+    margin: 0.5rem 0 0.75rem;
+    line-height: 1.4;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-header p-4 d-flex flex-wrap justify-content-between align-items-center gap-3 rounded-top-4"
+       style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; background-color: #0d6efd !important; color: #ffffff !important;">
+    <div>
+      <h3 class="mb-1 fw-bold" style="color: #ffffff !important; margin: 0;">WhatsApp Blast</h3>
+      <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85) !important; margin: 0;">
+        Upload data nasabah, pesan otomatis dipersonalisasi per nama, kirim manual satu per satu lewat WhatsApp
+      </p>
+    </div>
+  </div>
+
   <div class="card-body p-4">
-    <form method="post" enctype="multipart/form-data">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} border-0 shadow-sm rounded-3" role="alert">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="wablast-form">
       {% csrf_token %}
       <div class="row g-3">
         <div class="col-md-5">
-          <label for="{{ form.excel_file.id_for_label }}" class="form-label fw-semibold">
-            {{ form.excel_file.label }}
-          </label>
-          {{ form.excel_file }}
-          <div class="form-text">{{ form.excel_file.help_text }}</div>
+          <div class="upload-zone p-3 h-100">
+            <label for="{{ form.excel_file.id_for_label }}" class="form-label-wablast d-block mb-2">
+              {{ form.excel_file.label }}
+            </label>
+            {{ form.excel_file }}
+            <div class="form-text mt-2 hint-muted">{{ form.excel_file.help_text }}</div>
+          </div>
         </div>
         <div class="col-md-7">
-          <label for="{{ form.template.id_for_label }}" class="form-label fw-semibold">
-            {{ form.template.label }}
-          </label>
-          {{ form.template }}
-          <div class="form-text">{{ form.template.help_text }}</div>
+          <div class="p-3 border rounded-3 bg-light-subtle h-100">
+            <label for="{{ form.template.id_for_label }}" class="form-label-wablast d-block mb-2">
+              {{ form.template.label }}
+            </label>
+            {{ form.template }}
+            <div class="form-text mt-2 hint-muted">{{ form.template.help_text }}</div>
+          </div>
         </div>
       </div>
 
       {% if form.excel_file.errors or form.template.errors %}
-        <div class="alert alert-danger mt-3 py-2 mb-0">
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mt-3 mb-0">
           {{ form.excel_file.errors }}
           {{ form.template.errors }}
         </div>
       {% endif %}
 
-      <button type="submit" class="btn btn-primary mt-3 px-4">
+      <button type="submit" class="btn btn-primary fw-semibold shadow-sm mt-3 px-4" id="submit-btn-wablast">
         <i class="bi bi-upload me-1"></i> Proses Excel
       </button>
     </form>
-  </div>
-</div>
 
-{% if kontak_list is not None %}
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h6 class="fw-bold mb-0">Daftar Kontak ({{ kontak_list|length }})</h6>
-        <span class="text-muted" style="font-size:0.85rem;">
-          Klik "Buka WhatsApp" per kontak, lalu kirim manual di WhatsApp.
-        </span>
-      </div>
+    {% if kontak_list is not None %}
+      <hr class="my-4 text-muted opacity-25">
 
       {% if kontak_list %}
-        <div class="table-responsive">
-          <table class="table align-middle" id="tabelKontak">
-            <thead>
-              <tr class="text-muted" style="font-size:0.8rem;">
-                <th style="width:36px;"></th>
-                <th>Nama</th>
-                <th>No HP</th>
-                <th>Preview Pesan</th>
-                <th style="width:160px;">Aksi</th>
+        <div class="row g-3 mb-4 mx-0">
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm stat-card-elegant">
+              <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+              <div>
+                <div class="stat-label mb-1">Total Kontak</div>
+                <div class="fs-5 stat-value">{{ kontak_list|length }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{ kontak_list|json_script:"kontak-data" }}
+
+        <!-- Desktop: tabel -->
+        <div class="d-none d-md-block table-responsive rounded-3 border">
+          <table class="table table-hover align-middle mb-0 table-modern" id="tabelKontak">
+            <thead class="table-light border-bottom text-uppercase fw-bold text-secondary">
+              <tr>
+                <th class="py-3" style="width:36px;"></th>
+                <th class="py-3">Nama</th>
+                <th class="py-3">No HP</th>
+                <th class="py-3" style="width:90px;">Sapaan</th>
+                <th class="py-3">Preview Pesan</th>
+                <th class="py-3" style="width:170px;">Aksi</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="table-group-divider">
               {% for k in kontak_list %}
-                <tr class="{% if not k.valid %}table-warning{% endif %}">
+                <tr data-idx="{{ forloop.counter0 }}">
                   <td>
                     <input type="checkbox" class="form-check-input chk-kontak" {% if not k.valid %}disabled{% endif %}>
                   </td>
-                  <td class="fw-semibold">{{ k.nama }}</td>
+                  <td class="fw-semibold text-dark">{{ k.nama }}</td>
                   <td>
                     {% if k.valid %}
-                      {{ k.no_hp_formatted }}
+                      <span class="nomor-hp"><i class="bi bi-telephone-fill"></i>{{ k.no_hp_formatted }}</span>
                     {% else %}
-                      <span class="text-danger" title="Nomor tidak terbaca / formatnya tidak valid">{{ k.no_hp_asli|default:"-" }} (tidak valid)</span>
+                      <span class="nomor-hp"><i class="bi bi-telephone-fill"></i>{{ k.no_hp_asli|default:"-" }}</span>
                     {% endif %}
                   </td>
-                  <td style="font-size:0.85rem; max-width:340px;">{{ k.pesan }}</td>
+                  <td>
+                    <select class="form-select form-select-sm sapaan-select" data-idx="{{ forloop.counter0 }}">
+                      <option value="Bapak" selected>Bapak</option>
+                      <option value="Ibu">Ibu</option>
+                    </select>
+                  </td>
+                  <td class="small text-muted preview-cell" style="max-width:320px; white-space:normal;"></td>
                   <td>
                     {% if k.valid %}
-                      <a href="{{ k.wa_link }}" target="_blank" rel="noopener"
-                         class="btn btn-success btn-sm w-100 btn-buka-wa">
+                      <a href="#" target="_blank" rel="noopener"
+                         class="btn btn-wa btn-sm w-100 btn-buka-wa">
                         <i class="bi bi-whatsapp me-1"></i> Buka WhatsApp
                       </a>
                     {% else %}
-                      <button class="btn btn-secondary btn-sm w-100" disabled>Nomor invalid</button>
+                      <span class="text-invalid-label"><i class="bi bi-x-circle-fill me-1"></i>No invalid</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -98,21 +275,95 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile: card list -->
+        <div class="d-block d-md-none">
+          {% for k in kontak_list %}
+            <div class="kontak-card" data-idx="{{ forloop.counter0 }}">
+              <div class="kontak-card-header">
+                <div class="d-flex align-items-center gap-2">
+                  <input type="checkbox" class="form-check-input chk-kontak" {% if not k.valid %}disabled{% endif %}>
+                  <span class="kontak-nama">{{ k.nama }}</span>
+                </div>
+                {% if k.valid %}
+                  <span class="nomor-hp"><i class="bi bi-telephone-fill"></i>{{ k.no_hp_formatted }}</span>
+                {% else %}
+                  <span class="nomor-hp"><i class="bi bi-telephone-fill"></i>{{ k.no_hp_asli|default:"-" }}</span>
+                {% endif %}
+              </div>
+              <select class="form-select form-select-sm sapaan-select mb-2" data-idx="{{ forloop.counter0 }}" style="max-width:130px;">
+                <option value="Bapak" selected>Bapak</option>
+                <option value="Ibu">Ibu</option>
+              </select>
+              <div class="kontak-pesan preview-cell"></div>
+              {% if k.valid %}
+                <a href="#" target="_blank" rel="noopener"
+                   class="btn btn-wa btn-sm w-100 btn-buka-wa">
+                  <i class="bi bi-whatsapp me-1"></i> Buka WhatsApp
+                </a>
+              {% else %}
+                <div class="text-invalid-label text-center"><i class="bi bi-x-circle-fill me-1"></i>No invalid</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       {% else %}
-        <p class="text-muted mb-0">Tidak ada data kontak yang terbaca dari file yang diupload.</p>
+        <div class="alert alert-warning border-0 shadow-sm rounded-3" role="alert">
+          Tidak ada data kontak yang terbaca dari file yang diupload.
+        </div>
       {% endif %}
-    </div>
+    {% endif %}
   </div>
-{% endif %}
+</div>
 
 <script>
+  const PREVIEW_MAX_LEN = 130;
+  const kontakDataEl = document.getElementById("kontak-data");
+  const kontakData = kontakDataEl ? JSON.parse(kontakDataEl.textContent) : [];
+
+  function buatPreview(pesan) {
+    const satuBaris = pesan.replace(/\s+/g, " ").trim();
+    if (satuBaris.length <= PREVIEW_MAX_LEN) return satuBaris;
+    return satuBaris.slice(0, PREVIEW_MAX_LEN).trimEnd() + " ...";
+  }
+
+  function buatWaLink(nomor, pesan) {
+    return "https://wa.me/" + nomor + "?text=" + encodeURIComponent(pesan);
+  }
+
+  function updateRow(idx, sapaan) {
+    const kontak = kontakData[idx];
+    if (!kontak) return;
+    const pesanFinal = kontak.pesan_raw.split("{sapaan}").join(sapaan);
+
+    document.querySelectorAll('[data-idx="' + idx + '"]').forEach(function (el) {
+      const previewEl = el.matches(".kontak-card, tr") ? el.querySelector(".preview-cell") : null;
+      if (previewEl) previewEl.textContent = buatPreview(pesanFinal);
+
+      const btn = el.matches(".kontak-card, tr") ? el.querySelector(".btn-buka-wa") : null;
+      if (btn && kontak.no_hp_formatted) {
+        btn.href = buatWaLink(kontak.no_hp_formatted, pesanFinal);
+      }
+    });
+  }
+
+  document.querySelectorAll(".sapaan-select").forEach(function (select) {
+    const idx = select.getAttribute("data-idx");
+    updateRow(idx, select.value);
+    select.addEventListener("change", function () {
+      updateRow(idx, select.value);
+    });
+  });
+
   document.querySelectorAll(".btn-buka-wa").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var row = btn.closest("tr");
+      var row = btn.closest("tr") || btn.closest(".kontak-card");
       var chk = row.querySelector(".chk-kontak");
       if (chk) chk.checked = true;
-      row.classList.add("opacity-50");
+      row.classList.add("row-sent");
+      btn.classList.add("row-done");
     });
   });
 </script>
-{% endblock %}
+{% endblock %} 
+
