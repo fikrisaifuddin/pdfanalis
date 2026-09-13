@@ -992,19 +992,20 @@ def calculate_credit_analysis(
         persentase_gaji = 55.0
         label_pekerjaan = "Pegawai Tetap (55%)"
 
-    # 1. Gaji yang diakui = Penghasilan * Persentase (55% / 35%)
-    gaji_diakui = penghasilan_bersih * (persentase_gaji / 100.0)
-    
-    # 2. Kapasitas Bulanan = Gaji Diakui - Total Hutang SLIK
-    kapasitas_bulanan = gaji_diakui - total_monthly_slik
-    
-    # 3. Kapasitas Tahunan = Kapasitas Bulanan * 12
-    kapasitas_tahunan = kapasitas_bulanan * 12.0
-    
-    # 4. Maksimal Plafon KPR = Kapasitas Tahunan / Bunga Floating
+    # 1. Gaji yang diakui = Penghasilan * Persentase (55% / 35%) - Hutang SLIK
+    gaji_diakui_kotor = penghasilan_bersih * (persentase_gaji / 100.0)
+    gaji_diakui = gaji_diakui_kotor - total_monthly_slik
+
+    # Kapasitas bulanan = Gaji Diakui (sudah net hutang), dipertahankan untuk kompatibilitas
+    kapasitas_bulanan = gaji_diakui
+
+    # Kapasitas Tahunan = Gaji Diakui * 12
+    kapasitas_tahunan = gaji_diakui * 12.0
+
+    # 3. Maksimal Plafon KPR = Kapasitas Tahunan / Bunga Floating
     bunga_floating_val = float(bunga_floating) if bunga_floating and float(bunga_floating) > 0 else 12.0
     rate_floating_decimal = bunga_floating_val / 100.0
-    
+
     if kapasitas_tahunan > 0 and rate_floating_decimal > 0:
         maks_plafon_kpr = kapasitas_tahunan / rate_floating_decimal
     else:
@@ -1012,15 +1013,15 @@ def calculate_credit_analysis(
 
     # Nilai KPR Diminta (Harga Jual - Uang Muka)
     nilai_kpr = max(0.0, harga_jual - uang_muka)
-    
+
     # Angsuran KPR Baru (Metode Anuitas)
     n_months = int(tenor_tahun * 12) if tenor_tahun and tenor_tahun > 0 else 180
     loan_calc = calculate_loan_details(nilai_kpr, suku_bunga, n_months)
     angsuran_kpr_baru = loan_calc.get("Monthly Payment", 0.0)
-    
+
     ltv_ratio = (nilai_kpr / harga_jual * 100.0) if harga_jual > 0 else 0.0
     dp_percent = (uang_muka / harga_jual * 100.0) if harga_jual > 0 else 0.0
-    
+
     # --- Evaluasi 1: Karakter ---
     if problem_facilities_count == 0:
         karakter_status = "LANCAR (BAIK)"
@@ -1032,9 +1033,12 @@ def calculate_credit_analysis(
         karakter_desc = f"Terdapat {problem_facilities_count} fasilitas kredit berstatus tunggakan/kualitas bermasalah."
 
     # --- Evaluasi 2: Kapasitas ---
+    # Langkah 4 sesuai contoh: Batas Kapasitas = Gaji Diakui x 70%
+    batas_kapasitas = gaji_diakui * 0.70
+
     selisih_plafon = maks_plafon_kpr - nilai_kpr
-    selisih_angsuran = kapasitas_bulanan - angsuran_kpr_baru
-    
+    selisih_angsuran = batas_kapasitas - angsuran_kpr_baru
+
     if penghasilan_bersih <= 0:
         kapasitas_status = "BELUM DIISI"
         kapasitas_badge = "secondary"
@@ -1042,17 +1046,17 @@ def calculate_credit_analysis(
     elif selisih_plafon >= 0 and selisih_angsuran >= 0:
         kapasitas_status = "MEMENUHI (LAYAK)"
         kapasitas_badge = "success"
-        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan kapasitas angsuran bulanan mencukupi."
+        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) masih dalam batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
     else:
         kapasitas_status = "DEFISIT (TIDAK MEMENUHI)"
         kapasitas_badge = "danger"
-        
+
         if selisih_plafon < 0 and selisih_angsuran < 0:
-            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran bulanan melebihi kapasitas bayar."
+            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
         elif selisih_plafon < 0:
             kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f})."
         else:
-            kapasitas_desc = f"Estimasi angsuran bulanan (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas bayar bulanan (Rp {kapasitas_bulanan:,.0f})."
+            kapasitas_desc = f"Estimasi angsuran bulanan (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
 
     # --- Evaluasi 3: Kolateral ---
     if harga_jual <= 0:
@@ -1069,11 +1073,11 @@ def calculate_credit_analysis(
         kolateral_desc = f"LTV Ratio sebesar {ltv_ratio:.2f}% (DP {dp_percent:.2f}%). Uang muka disarankan minimal 15-20%."
 
     is_layak = (
-        (problem_facilities_count == 0) and 
-        (selisih_plafon >= 0) and 
+        (problem_facilities_count == 0) and
+        (selisih_plafon >= 0) and
         (selisih_angsuran >= 0) and
-        (ltv_ratio <= 85.0) and 
-        (penghasilan_bersih > 0) and 
+        (ltv_ratio <= 85.0) and
+        (penghasilan_bersih > 0) and
         (harga_jual > 0)
     )
 
@@ -1093,6 +1097,7 @@ def calculate_credit_analysis(
         "total_monthly_slik": total_monthly_slik,
         "kapasitas_bulanan": kapasitas_bulanan,
         "kapasitas_tahunan": kapasitas_tahunan,
+        "batas_kapasitas": batas_kapasitas,
         "maks_plafon_kpr": maks_plafon_kpr,
         "angsuran_kpr_baru": angsuran_kpr_baru,
         "selisih_plafon": selisih_plafon,
