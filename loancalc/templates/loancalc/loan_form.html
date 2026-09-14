@@ -383,16 +383,36 @@ function escapeHtml(str) {
 }
 
 function buildEmptyState(mode) {
-    const subtitle = mode === "6bulan"
-        ? "Tidak ada fasilitas bermasalah dalam 6 bulan terakhir."
-        : "Tidak ada fasilitas bermasalah yang ditemukan.";
+    if (mode === "6bulan" && problemFacilities.length > 0) {
+        const totalAll = problemFacilities.length;
+        return `
+            <div style="text-align:center; padding:30px 12px;">
+                <div style="width:56px; height:56px; margin:0 auto 14px; border-radius:50%; background:#fff8e1; display:flex; align-items:center; justify-content:center;">
+                    <i class="bi bi-info-circle-fill" style="font-size:26px; color:#f0ad4e;"></i>
+                </div>
+                <div style="font-weight:600; color:#343a40; font-size:0.95rem; margin-bottom:4px;">
+                    Lancar dalam 6 Bulan Terakhir
+                </div>
+                <div style="color:#868e96; font-size:0.82rem; margin-bottom:16px; padding:0 8px;">
+                    Nasabah tidak memiliki tunggakan/masalah pembayaran dalam 6 bulan terakhir.
+                </div>
+                <div style="margin-bottom:14px;">
+                    <a href="#" onclick="switchFilterMode('all'); return false;"
+                       style="font-size:0.8rem; color:#0d6efd; font-weight:600; text-decoration:none;">
+                        Klik untuk melihat ${totalAll} fasilitas bermasalah di luar 6 bulan terakhir &rarr;
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
     return `
         <div style="text-align:center; padding:36px 12px;">
             <div style="width:56px; height:56px; margin:0 auto 14px; border-radius:50%; background:#e7f5ec; display:flex; align-items:center; justify-content:center;">
                 <i class="bi bi-check2-circle" style="font-size:28px; color:#2f9e5b;"></i>
             </div>
             <div style="font-weight:600; color:#343a40; font-size:0.95rem; margin-bottom:4px;">Tidak ada masalah</div>
-            <div style="color:#868e96; font-size:0.82rem;">${subtitle}</div>
+            <div style="color:#868e96; font-size:0.82rem;">Tidak ada fasilitas bermasalah yang ditemukan.</div>
         </div>
     `;
 }
@@ -481,7 +501,7 @@ function showProblemFacilitiesPopup() {
     Swal.fire({
         icon: "warning",
         title: "Kualitas Bermasalah Ditemukan",
-        html: renderPopupBody("6bulan"), // default selalu buka di mode 6 bulan
+        html: renderPopupBody("6bulan"), // default 6 bulan
         confirmButtonText: "Mengerti",
         confirmButtonColor: "#0d6efd",
         width: 480,
@@ -489,7 +509,6 @@ function showProblemFacilitiesPopup() {
             popup: "rounded-4",
         },
         didOpen: () => {
-            // reset mode default setiap kali popup dibuka ulang
             currentFilterMode = "6bulan";
         },
     });
