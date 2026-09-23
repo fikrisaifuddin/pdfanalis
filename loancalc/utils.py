@@ -969,7 +969,6 @@ def extract_slik_data(
     }
     return df, meta
 
-
 def calculate_credit_analysis(
     status_pekerjaan: str = "tetap",
     penghasilan_bersih: float = 0.0,
@@ -1121,3 +1120,14 @@ def calculate_credit_analysis(
         },
         "is_layak": is_layak,
     }
+
+def serialize_result_for_export(result: dict) -> dict:
+    """Ubah semua datetime di result jadi string agar aman disimpan di session/JSON."""
+    import copy
+    r = copy.deepcopy(result)
+    for row in r.get("rows", []):
+        for key in ("start_date", "end_date"):
+            val = row.get(key)
+            if hasattr(val, "strftime"):
+                row[key] = val.strftime("%d-%m-%Y")
+    return r

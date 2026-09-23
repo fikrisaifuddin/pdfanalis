@@ -583,6 +583,11 @@ document.addEventListener("DOMContentLoaded", function () {
             </button>
           </form>
         {% endif %}
+        {% if result.rows %}
+          <a href="{% url 'export_pdf' %}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke PDF">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
+          </a>
+        {% endif %}
       </div>
     {% endif %}
   </div>

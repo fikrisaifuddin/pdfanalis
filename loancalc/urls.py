@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import loan_calc_view
+from . import views
 
 urlpatterns = [
-    path('', loan_calc_view, name='loan_calc'),
+    path("", views.loan_calc_view, name="loan_calc"),
+    path("export-pdf/", views.export_pdf_view, name="export_pdf"),
 ]

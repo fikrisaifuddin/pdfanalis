@@ -8,7 +8,8 @@ import json
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
 
-from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah, calculate_credit_analysis
+from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah, calculate_credit_analysis, serialize_result_for_export
+from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,9 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                             problem_facilities_count=len(result.get("problem_facilities", [])),
                         )
 
+                    if result is not None:
+                        request.session["last_loan_result"] = serialize_result_for_export(result)
+
                     # Export CSV jika diminta
                     if request.POST.get("export_csv") == "1" and result and result.get("rows"):
                         import io
@@ -263,3 +267,28 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, "loancalc/loan_form.html", context)
+
+def export_pdf_view(request: HttpRequest) -> HttpResponse:
+    from weasyprint import HTML
+
+    result = request.session.get("last_loan_result")
+    if not result:
+        return HttpResponse(
+            "Tidak ada data untuk diexport. Silakan proses PDF SLIK terlebih dahulu.",
+            status=400,
+        )
+
+    html_string = render_to_string("loancalc/loan_pdf.html", {
+        "result": result,
+        "generated_at": datetime.now(),
+    })
+
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    safe_name = (result.get("nama") or "nasabah").replace(" ", "_")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{safe_name}_analisis_kredit_{timestamp}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
