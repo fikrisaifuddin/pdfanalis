@@ -350,7 +350,7 @@
   document.querySelectorAll(".sapaan-select").forEach(function (select) {
     const idx = select.getAttribute("data-idx");
     updateRow(idx, select.value);
-    select.addEventListener("change", function () {
+    select.addEventListener("change", function () { 
       updateRow(idx, select.value);
     });
   });
