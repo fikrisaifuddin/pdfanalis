@@ -608,7 +608,17 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="col-12">
           <div class="upload-zone p-3">
             <label for="pdf_file" class="form-label fw-bold text-secondary mb-2">Upload PDF SLIK OJK</label>
-            <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" class="form-control form-control-sm" required aria-describedby="pdfHelp">
+            <input type="file" name="pdf_file" id="pdf_file" accept=".pdf"
+                  class="form-control form-control-sm"
+                  {% if not cached_pdf_name %}required{% endif %}
+                  aria-describedby="pdfHelp">
+            {% if cached_pdf_name %}
+              <div class="form-text mt-2 small text-success">
+                <i class="bi bi-file-earmark-check-fill me-1"></i>
+                Memakai PDF tersimpan: <strong>{{ cached_pdf_name }}</strong>.
+                , atau pilih file baru untuk menggantinya.
+              </div>
+            {% endif %}
             <div id="pdfHelp" class="form-text mt-2 hint-muted">
               Hanya hitung <strong>Kondisi = Fasilitas Aktif</strong>. Format file wajib <code>.pdf</code>.
             </div>
@@ -1139,7 +1149,10 @@ document.addEventListener("DOMContentLoaded", function () {
 </div>
 
 <script>
-  // Format Rupiah & Perhitungan Real-Time Nilai KPR
+
+  let skipCleanup = false;
+
+  // Format Rupiah
   function formatRupiah(number) {
     if (isNaN(number) || number === null || number <= 0) return "";
     return Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -1167,7 +1180,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const rupiahInputs = document.querySelectorAll(".rupiah-input");
     rupiahInputs.forEach(input => {
-      // Format nilai awal dari server (jika ada)
       if (input.value) {
         const num = parseNumber(input.value);
         if (num > 0) input.value = formatRupiah(num);
@@ -1204,5 +1216,30 @@ document.addEventListener("DOMContentLoaded", function () {
       if (btnText) btnText.textContent = "Memproses...";
     });
   }
+
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      if (pdfInput && pdfInput.files.length > 0) {
+        const fname = pdfInput.files[0].name.toLowerCase();
+        if (!fname.endsWith(".pdf")) {
+          e.preventDefault();
+          alert("Hanya file .pdf yang diperbolehkan.");
+          return;
+        }
+      }
+      skipCleanup = true;   
+      if (submitBtn) submitBtn.disabled = true;
+      if (spinner) spinner.classList.remove("d-none");
+      if (btnText) btnText.textContent = "Memproses...";
+    });
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (skipCleanup) return;
+    const tokenEl = document.querySelector("[name=csrfmiddlewaretoken]");
+    const fd = new FormData();
+    if (tokenEl) fd.append("csrfmiddlewaretoken", tokenEl.value);
+    navigator.sendBeacon("{% url 'cleanup_pdf' %}", fd);
+  });
 </script>
 {% endblock %}
