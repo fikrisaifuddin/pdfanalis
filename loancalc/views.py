@@ -125,6 +125,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     suku_bunga_raw = request.POST.get("suku_bunga", "7.5") if request.method == "POST" else "7.5"
     bunga_floating_raw = request.POST.get("bunga_floating", "12.0") if request.method == "POST" else "12.0"
     tenor_tahun_raw = request.POST.get("tenor_tahun", "15") if request.method == "POST" else "15"
+    persentase_custom_raw = request.POST.get("persentase_custom", "") if request.method == "POST" else ""
 
     penghasilan_bersih = parse_float_input(penghasilan_bersih_raw, 0.0)
     harga_jual = parse_float_input(harga_jual_raw, 0.0)
@@ -135,6 +136,8 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
         tenor_tahun = int(tenor_tahun_raw)
     except Exception:
         tenor_tahun = 15
+
+    persentase_custom = parse_percent_input(persentase_custom_raw, 0.0)
 
     if request.method == "POST":
         pdf_file = request.FILES.get("pdf_file")
@@ -258,6 +261,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         tenor_tahun=tenor_tahun,
                         total_monthly_slik=result.get("total_monthly_payment", 0.0),
                         problem_facilities_count=len(result.get("problem_facilities", [])),
+                        persentase_custom=persentase_custom,
                     )
                     request.session["last_loan_result"] = serialize_result_for_export(result)
 
@@ -297,9 +301,9 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                         tenor_tahun=tenor_tahun,
                         total_monthly_slik=0.0,
                         problem_facilities_count=0,
+                        persentase_custom=persentase_custom,
                     ),
                 }
-
     cached = _get_cached_pdf(request)
 
     context = {
@@ -315,6 +319,7 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
         "suku_bunga": suku_bunga_raw,
         "bunga_floating": bunga_floating_raw,
         "tenor_tahun": tenor_tahun_raw,
+        "persentase_custom": persentase_custom_raw,
         "cached_pdf_name": cached[1] if cached else "",
         "problem_facilities_json": json.dumps(
             result.get("problem_facilities", []) if result else [], default=str

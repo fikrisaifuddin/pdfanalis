@@ -643,15 +643,31 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="col-12">
               <div class="p-3 border rounded-3 bg-light-subtle">
                 <div class="row g-3">
-                  <div class="col-md-3">
-                    <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
-                    <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm">
-                      <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (55% Gaji Diakui)</option>
-                      <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
-                      <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (35% Gaji Diakui)</option>
-                    </select>
-                    <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
+                <div class="col-md-3">
+                  <label for="status_pekerjaan" class="form-label fw-bold text-secondary small mb-1">Status Pekerjaan</label>
+                  <select name="status_pekerjaan" id="status_pekerjaan" class="form-select form-select-sm">
+                    <option value="tetap" {% if status_pekerjaan == "tetap" %}selected{% endif %}>Pegawai Tetap (55% Gaji Diakui)</option>
+                    <option value="kontrak" {% if status_pekerjaan == "kontrak" %}selected{% endif %}>Pegawai Kontrak (35% Gaji Diakui)</option>
+                    <option value="pengusaha" {% if status_pekerjaan == "pengusaha" %}selected{% endif %}>Pengusaha (35% Gaji Diakui)</option>
+                    <option value="custom" {% if status_pekerjaan == "custom" %}selected{% endif %}>Lainnya (Input Persentase Manual)</option>
+                  </select>
+
+                  <!-- Muncul hanya saat memilih "Lainnya" -->
+                  <div id="persentase-custom-wrap" class="mt-2 {% if status_pekerjaan != 'custom' %}d-none{% endif %}">
+                    <label for="persentase_custom" class="form-label fw-bold text-secondary small mb-1">Persentase Gaji Diakui</label>
+                    <div class="input-group input-group-sm">
+                      <input type="number" step="0.01" min="0" max="100"
+                            name="persentase_custom" id="persentase_custom"
+                            value="{{ persentase_custom|default:'' }}"
+                            placeholder="Contoh: 20"
+                            class="form-control"
+                            {% if status_pekerjaan == 'custom' %}required{% endif %}>
+                      <span class="input-group-text bg-white">%</span>
+                    </div>
                   </div>
+
+                  <div class="form-text hint-muted">Persentase gaji diakui dari status pegawai.</div>
+                </div>
                   <div class="col-md-3">
                     <label for="penghasilan_bersih" class="form-label fw-bold text-secondary small mb-1">Penghasilan Bersih / Bulan (Rp)</label>
                     <div class="input-group input-group-sm">
@@ -830,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <span class="value">{{ result.analisis_kredit.label_pekerjaan }}</span>
                 </div>
                 <div class="kredit-row">
-                  <span class="label">Gaji Diakui ({{ result.analisis_kredit.persentase_gaji|floatformat:0 }}%):</span>
+                  <span class="label">Gaji Diakui ({{ result.analisis_kredit.persentase_gaji|floatformat:-2 }}%):</span>
                   <span class="value">Rp {{ result.analisis_kredit.gaji_diakui|floatformat:0|intcomma|default:"0" }}</span>
                 </div>
                 <div class="kredit-row">
@@ -1193,6 +1209,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     updateLiveKpr();
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const statusSelect = document.getElementById("status_pekerjaan");
+    const customWrap = document.getElementById("persentase-custom-wrap");
+    const customInput = document.getElementById("persentase_custom");
+
+    function toggleCustomPercent() {
+      if (!statusSelect || !customWrap || !customInput) return;
+      const isCustom = statusSelect.value === "custom";
+      customWrap.classList.toggle("d-none", !isCustom);
+      customInput.required = isCustom;
+      if (isCustom) customInput.focus();
+    }
+
+    if (statusSelect) statusSelect.addEventListener("change", toggleCustomPercent);
   });
 
   const form = document.getElementById("loan-form");

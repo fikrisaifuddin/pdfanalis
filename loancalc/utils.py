@@ -978,7 +978,8 @@ def calculate_credit_analysis(
     bunga_floating: float = 12.0,
     tenor_tahun: int = 15,
     total_monthly_slik: float = 0.0,
-    problem_facilities_count: int = 0
+    problem_facilities_count: int = 0,
+    persentase_custom: float = 0.0,
 ) -> dict:
     status_clean = str(status_pekerjaan).lower()
     if status_clean == "kontrak":
@@ -987,6 +988,9 @@ def calculate_credit_analysis(
     elif status_clean == "pengusaha":
         persentase_gaji = 35.0
         label_pekerjaan = "Pengusaha (35%)"
+    elif status_clean == "custom":
+        persentase_gaji = min(max(float(persentase_custom or 0.0), 0.0), 100.0)
+        label_pekerjaan = f"Kategori Lainnya ({persentase_gaji:g}%)"
     else:
         persentase_gaji = 55.0
         label_pekerjaan = "Pegawai Tetap (55%)"
