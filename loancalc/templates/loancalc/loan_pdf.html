@@ -8,22 +8,46 @@
   body { font-family: Helvetica, sans-serif; font-size: 10px; color: #212529; }
   h1 { font-size: 16px; margin-bottom: 2px; }
   .sub { color: #868e96; font-size: 9px; margin-bottom: 16px; }
-  .section { margin-bottom: 14px; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px 14px; }
+
+  /* Heading polos tanpa kotak, pemisah antar bagian laporan */
+  .heading {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #343a40;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 4px;
+    margin: 18px 0 8px;
+  }
+  .heading:first-of-type { margin-top: 0; }
+
+  .section { border: 1px solid #dee2e6; border-radius: 6px; padding: 10px 14px; }
   .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #495057; margin-bottom: 6px; }
+
   table.layout3col { width: 100%; border-collapse: collapse; }
   table.layout3col td.col { width: 33.33%; vertical-align: top; padding: 0 6px; border: none; }
+
   table.datarow { width: 100%; margin-top: 4px; }
-  table.datarow td { border: none; padding: 2px 0; text-align: left; }
+  table.datarow td { border: none; padding: 6px 10px; text-align: left; }
   table.datarow td.label { color: #868e96; }
   table.datarow td.value { font-weight: bold; text-align: right; }
-  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-  th, td { border: 1px solid #dee2e6; padding: 4px 6px; text-align: center; }
-  th { background: #f1f3f5; }
-  .badge { padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: bold; }
+
+  table.data-table { width: 100%; border-collapse: collapse; }
+  table.data-table th, table.data-table td {
+    border: 1px solid #dee2e6;
+    padding: 4px 6px;
+    text-align: center;
+  }
+  table.data-table th { background: #f1f3f5; }
+  table.data-table tr { page-break-inside: avoid; }
+  table.data-table thead { display: table-header-group; }
+
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: bold; display: inline-block; }
   .badge-success { background: #e7f5ec; color: #2f9e5b; }
   .badge-danger  { background: #f8d7da; color: #842029; }
   .badge-warning { background: #fff8e1; color: #997404; }
   .badge-neutral { background: #e9ecef; color: #495057; }
+
   .footer { margin-top: 20px; font-size: 8px; color: #adb5bd; text-align: right; }
 </style>
 </head>
@@ -34,37 +58,42 @@
 
   {% with ak=result.analisis_kredit %}
   {% if ak %}
-  <div class="section">
-    <div class="section-title">Hasil Penilaian 3 Aspek Kredit</div>
-    <table class="datarow">
-      <tr>
-        <td class="label">Rekomendasi</td>
-        <td class="value">
-          <span class="badge {% if ak.is_layak %}badge-success{% else %}badge-warning{% endif %}">
-            {% if ak.is_layak %}LAYAK (MEMENUHI){% else %}PERLU EVALUASI{% endif %}
-          </span>
-        </td>
-      </tr>
-    </table>
-  </div>
+
+  <div class="heading">Hasil Penilaian 3 Aspek Kredit</div>
+  <table class="datarow" style="margin-bottom:10px;">
+    <tr>
+      <td class="label">Rekomendasi</td>
+      <td class="value">
+        <span class="badge {% if ak.is_layak %}badge-success{% else %}badge-warning{% endif %}">
+          {% if ak.is_layak %}LAYAK (MEMENUHI){% else %}PERLU EVALUASI{% endif %}
+        </span>
+      </td>
+    </tr>
+  </table>
 
   <table class="layout3col">
     <tr>
       <td class="col">
         <div class="section" style="height:100%;">
-          <div class="section-title">1. Karakter</div>
-          <span class="badge {% if ak.karakter.badge == 'danger' %}badge-danger{% elif ak.karakter.badge == 'success' %}badge-success{% else %}badge-neutral{% endif %}">
-            {{ ak.karakter.status }}
-          </span>
+          <div class="section-title">
+            1. KARAKTER
+            <br>
+            <span class="badge {% if ak.karakter.badge == 'danger' %}badge-danger{% elif ak.karakter.badge == 'success' %}badge-success{% else %}badge-neutral{% endif %}" style="margin-top:6px;">
+              {{ ak.karakter.status }}
+            </span>
+          </div>
           <p>{{ ak.karakter.desc }}</p>
         </div>
       </td>
       <td class="col">
         <div class="section" style="height:100%;">
-          <div class="section-title">2. Kapasitas</div>
-          <span class="badge {% if ak.kapasitas.badge == 'danger' %}badge-danger{% elif ak.kapasitas.badge == 'success' %}badge-success{% else %}badge-neutral{% endif %}">
-            {{ ak.kapasitas.status }}
-          </span>
+          <div class="section-title">
+            2. KAPASITAS
+            <br>
+            <span class="badge {% if ak.kapasitas.badge == 'danger' %}badge-danger{% elif ak.kapasitas.badge == 'success' %}badge-success{% else %}badge-neutral{% endif %}" style="margin-top:6px;">
+              {{ ak.kapasitas.status }}
+            </span>
+          </div>
           <table class="datarow">
             <tr><td class="label">Gaji Diakui ({{ ak.persentase_gaji|floatformat:0 }}%)</td><td class="value">Rp {{ ak.gaji_diakui|rupiah }}</td></tr>
             <tr><td class="label">Hutang SLIK</td><td class="value">- Rp {{ ak.total_monthly_slik|rupiah }}</td></tr>
@@ -76,10 +105,13 @@
       </td>
       <td class="col">
         <div class="section" style="height:100%;">
-          <div class="section-title">3. Kolateral</div>
-          <span class="badge {% if ak.kolateral.badge == 'danger' %}badge-danger{% elif ak.kolateral.badge == 'success' %}badge-success{% else %}badge-warning{% endif %}">
-            {{ ak.kolateral.status }}
-          </span>
+          <div class="section-title">
+            3. KOLATERAL
+            <br>
+            <span class="badge {% if ak.kolateral.badge == 'danger' %}badge-danger{% elif ak.kolateral.badge == 'success' %}badge-success{% else %}badge-warning{% endif %}" style="margin-top:6px;">
+              {{ ak.kolateral.status }}
+            </span>
+          </div>
           <table class="datarow">
             <tr><td class="label">Harga Jual</td><td class="value">Rp {{ ak.harga_jual|rupiah }}</td></tr>
             <tr><td class="label">Uang Muka (DP)</td><td class="value">Rp {{ ak.uang_muka|rupiah }} ({{ ak.dp_percent|floatformat:1 }}%)</td></tr>
@@ -93,53 +125,51 @@
   {% endif %}
   {% endwith %}
 
-  <div class="section">
-    <div class="section-title">Rincian Fasilitas Aktif</div>
-    <table>
-      <thead>
-        <tr>
-          <th>No</th><th>Bank</th><th>Cabang</th><th>Loan Amount</th><th>Rate</th>
-          <th>Term (bln)</th><th>Start</th><th>End</th><th>Monthly</th><th>Page</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in result.rows %}
-        <tr>
-          <td>{{ row.no }}</td>
-          <td>{{ row.bank }}</td>
-          <td>{{ row.cabang }}</td>
-          <td>{{ row.loan_amount|rupiah }}</td>
-          <td>{{ row.interest_rate|floatformat:2 }}%</td>
-          <td>{{ row.loan_term_months }}</td>
-          <td>{{ row.start_date }}</td>
-          <td>{{ row.end_date }}</td>
-          <td>{{ row.monthly_payment|rupiah:2 }}</td>
-          <td>{{ row.page }}</td>
-        </tr>
-        {% endfor %}
-        <tr>
-          <td colspan="8" style="text-align:right; font-weight:bold;">Total Monthly Payment</td>
-          <td colspan="2" style="font-weight:bold;">{{ result.total_monthly_payment|rupiah:2 }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="heading">Rincian Fasilitas Aktif</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>No</th><th>Bank</th><th>Cabang</th><th>Loan Amount</th><th>Rate</th>
+        <th>Term (bln)</th><th>Start</th><th>End</th><th>Monthly</th><th>Page</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in result.rows %}
+      <tr>
+        <td>{{ row.no }}</td>
+        <td>{{ row.bank }}</td>
+        <td>{{ row.cabang }}</td>
+        <td>{{ row.loan_amount|rupiah }}</td>
+        <td>{{ row.interest_rate|floatformat:2 }}%</td>
+        <td>{{ row.loan_term_months }}</td>
+        <td>{{ row.start_date }}</td>
+        <td>{{ row.end_date }}</td>
+        <td>{{ row.monthly_payment|rupiah:2 }}</td>
+        <td>{{ row.page }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td colspan="8" style="text-align:right; font-weight:bold;">Total Monthly Payment</td>
+        <td colspan="2" style="font-weight:bold;">{{ result.total_monthly_payment|rupiah:2 }}</td>
+      </tr>
+    </tbody>
+  </table>
 
   {% if result.problem_facilities %}
-  <div class="section">
-    <div class="section-title">Fasilitas Kualitas Bermasalah</div>
-    <table>
-      <thead><tr><th>Pelapor</th><th>Cabang</th><th>Kualitas</th><th>Kondisi</th><th>Terakhir Bermasalah</th></tr></thead>
-      <tbody>
-        {% for f in result.problem_facilities %}
-        <tr>
-          <td>{{ f.pelapor }}</td><td>{{ f.cabang }}</td><td>{{ f.kualitas }}</td>
-          <td>{{ f.kondisi }}</td><td>{{ f.bulan_tahun }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <div class="heading">Fasilitas Kualitas Bermasalah</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Pelapor</th><th>Cabang</th><th>Kualitas</th><th>Kondisi</th><th>Terakhir Bermasalah</th></tr>
+    </thead>
+    <tbody>
+      {% for f in result.problem_facilities %}
+      <tr>
+        <td>{{ f.pelapor }}</td><td>{{ f.cabang }}</td><td>{{ f.kualitas }}</td>
+        <td>{{ f.kondisi }}</td><td>{{ f.bulan_tahun }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% endif %}
 
   <div class="footer">Dokumen ini dibuat otomatis oleh sistem &mdash; bukan pengganti dokumen resmi SLIK OJK.</div>
