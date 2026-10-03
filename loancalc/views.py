@@ -329,7 +329,8 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     return render(request, "loancalc/loan_form.html", context)
 
 def export_pdf_view(request: HttpRequest) -> HttpResponse:
-    from weasyprint import HTML
+    from io import BytesIO
+    from xhtml2pdf import pisa
 
     result = request.session.get("last_loan_result")
     if not result:
@@ -343,12 +344,16 @@ def export_pdf_view(request: HttpRequest) -> HttpResponse:
         "generated_at": datetime.now(),
     })
 
-    pdf_bytes = HTML(string=html_string).write_pdf()
+    buffer = BytesIO()
+    pisa_status = pisa.CreatePDF(html_string, dest=buffer)
+
+    if pisa_status.err:
+        return HttpResponse("Gagal membuat PDF.", status=500)
 
     safe_name = (result.get("nama") or "nasabah").replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{safe_name}_analisis_kredit_{timestamp}.pdf"
 
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
