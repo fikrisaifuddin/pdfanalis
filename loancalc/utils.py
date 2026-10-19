@@ -969,7 +969,6 @@ def extract_slik_data(
     }
     return df, meta
 
-
 def calculate_credit_analysis(
     status_pekerjaan: str = "tetap",
     penghasilan_bersih: float = 0.0,
@@ -979,7 +978,8 @@ def calculate_credit_analysis(
     bunga_floating: float = 12.0,
     tenor_tahun: int = 15,
     total_monthly_slik: float = 0.0,
-    problem_facilities_count: int = 0
+    problem_facilities_count: int = 0,
+    persentase_custom: float = 0.0,
 ) -> dict:
     status_clean = str(status_pekerjaan).lower()
     if status_clean == "kontrak":
@@ -988,6 +988,9 @@ def calculate_credit_analysis(
     elif status_clean == "pengusaha":
         persentase_gaji = 35.0
         label_pekerjaan = "Pengusaha (35%)"
+    elif status_clean == "custom":
+        persentase_gaji = min(max(float(persentase_custom or 0.0), 0.0), 100.0)
+        label_pekerjaan = f"Kategori Lainnya ({persentase_gaji:g}%)"
     else:
         persentase_gaji = 55.0
         label_pekerjaan = "Pegawai Tetap (55%)"
@@ -1121,3 +1124,14 @@ def calculate_credit_analysis(
         },
         "is_layak": is_layak,
     }
+
+def serialize_result_for_export(result: dict) -> dict:
+    """Ubah semua datetime di result jadi string agar aman disimpan di session/JSON."""
+    import copy
+    r = copy.deepcopy(result)
+    for row in r.get("rows", []):
+        for key in ("start_date", "end_date"):
+            val = row.get(key)
+            if hasattr(val, "strftime"):
+                row[key] = val.strftime("%d-%m-%Y")
+    return r
