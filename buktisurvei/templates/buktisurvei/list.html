@@ -234,16 +234,18 @@
     align-items: center;
     justify-content: center;
   }
+  /* FIX ZOOM: pakai "contain" (bukan "cover") supaya seluruh frame kamera
+     terlihat utuh, tidak di-crop/diperbesar. Sisa ruang jadi bar hitam. */
   .camera-frame-wrap video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
   .preview-canvas {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
   }
 
@@ -518,17 +520,34 @@
     currentKode = generateKodeFoto();
     loKode.textContent = currentKode;
 
-    navigator.mediaDevices.getUserMedia({
+    // FIX ZOOM: sensor kamera HP aslinya 4:3. Kalau diminta 9:16 (1080x1920),
+    // browser memotong (crop) sensornya sehingga terlihat ter-zoom.
+    // Jadi minta rasio 4:3 sesuai orientasi layar, biar tidak ada crop.
+    const portrait = window.innerHeight > window.innerWidth;
+    const constraints = {
       video: {
-        facingMode: 'environment',
-        width: { ideal: 1080 },
-        height: { ideal: 1920 }
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: portrait ? 1200 : 1600 },
+        height: { ideal: portrait ? 1600 : 1200 },
+        aspectRatio: { ideal: portrait ? 3 / 4 : 4 / 3 }
       },
       audio: false
-    })  
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
       .then(function (stream) {
         currentStream = stream;
         video.srcObject = stream;
+
+        // Paksa zoom ke minimum (1x) kalau browser mendukung (Android Chrome)
+        try {
+          const track = stream.getVideoTracks()[0];
+          const caps = track.getCapabilities ? track.getCapabilities() : {};
+          if (caps.zoom) {
+            track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }).catch(function () {});
+          }
+        } catch (e) { /* abaikan */ }
+
         captureBtn.disabled = false;
         liveOverlay.classList.remove('d-none');
         startLiveClock();
@@ -639,42 +658,6 @@
     return lines;
   }
 
-  // Ambil frame dari <video> dan crop ke rasio target (rasio layar) dengan
-  // crop tengah (center-crop) — sama seperti object-fit: cover di CSS.
-  // Catatan: TIDAK melakukan auto-rotate. Rotasi otomatis hanya relevan untuk
-  // sensor kamera HP tertentu dan justru bikin foto jadi miring saat sumbernya
-  // webcam laptop/desktop (landscape native, tidak butuh diputar).
-  function captureOrientedFrame(sourceVideo, targetAspect) {
-    if (!targetAspect || !isFinite(targetAspect)) targetAspect = 9 / 16;
-
-    const vw = sourceVideo.videoWidth;
-    const vh = sourceVideo.videoHeight;
-    const videoAspect = vw / vh;
-
-    let sx, sy, sw, sh;
-    if (videoAspect > targetAspect) {
-      // sumber lebih lebar dari target -> crop kiri-kanan
-      sh = vh;
-      sw = vh * targetAspect;
-      sx = (vw - sw) / 2;
-      sy = 0;
-    } else {
-      // sumber lebih tinggi dari target -> crop atas-bawah
-      sw = vw;
-      sh = vw / targetAspect;
-      sx = 0;
-      sy = (vh - sh) / 2;
-    }
-
-    const out = document.createElement('canvas');
-    out.width = Math.max(1, Math.round(sw));
-    out.height = Math.max(1, Math.round(sh));
-    const octx = out.getContext('2d');
-    octx.drawImage(sourceVideo, sx, sy, sw, sh, 0, 0, out.width, out.height);
-
-    return out;
-  }
-
   captureBtn.addEventListener('click', async function () {
     if (!lastCoords) {
       alert('Lokasi belum terdeteksi, tunggu sebentar lalu coba lagi.');
@@ -687,15 +670,12 @@
     const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
     const kodeFoto = currentKode || generateKodeFoto();
 
-    // Crop + koreksi orientasi video mentah supaya hasil foto sama persis
-    // dengan yang terlihat live di layar (object-fit: cover), tanpa strip
-    // hitam maupun zoom berlebihan. Pakai rasio window (bukan elemen DOM)
-    // karena lebih stabil, dan auto-rotate kalau ternyata frame mentah dari
-    // kamera device ini landscape padahal layar portrait (atau sebaliknya).
-    const framed = captureOrientedFrame(video, window.innerWidth / window.innerHeight);
-    canvas.width = framed.width;
-    canvas.height = framed.height;
-    ctx.drawImage(framed, 0, 0);
+    // FIX ZOOM: ambil FRAME PENUH dari kamera apa adanya (tanpa crop ke rasio
+    // layar). Dengan begitu foto yang tersimpan sama luasnya dengan yang
+    // terlihat di preview (object-fit: contain).
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const now = new Date();
     const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
