@@ -325,31 +325,27 @@ function parseBulanTahun(bulanTahunStr) {
     return { month: bulanNum, year: year, hari: match[3] };
 }
 
-// True kalau bulan_tahun fasilitas ini masih dalam window 6 bulan terakhir dari sekarang
 function isWithinLast6Months(bulanTahunStr) {
     const parsed = parseBulanTahun(bulanTahunStr);
-    if (!parsed) return null; // null = tidak bisa ditentukan (data histori tidak tersedia)
+    if (!parsed) return null; 
 
     const now = new Date();
     const nowTotal = now.getFullYear() * 12 + (now.getMonth() + 1);
     const itemTotal = parsed.year * 12 + parsed.month;
     const diff = nowTotal - itemTotal;
 
-    // diff 0..5 = masih dalam 6 bulan terakhir (inklusif bulan berjalan)
     return diff >= 0 && diff <= 5;
 }
 
 function getFilteredFacilities(mode) {
     if (mode === "all") return problemFacilities;
 
-    // mode "6bulan": tampilkan yang within 6 bulan ATAU yang datanya tidak bisa ditentukan
     return problemFacilities.filter(function (f) {
         const within = isWithinLast6Months(f.bulan_tahun);
         return within === true || within === null;
     });
 }
 
-// Warna badge kualitas berdasarkan digit pertama (2=kuning, 3-5=merah) — versi "soft"
 function getKualitasBadgeStyle(kualitasStr) {
     const m = (kualitasStr || "").trim().match(/^(\d)/);
     const num = m ? m[1] : null;
@@ -572,17 +568,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <a href="{{ request.path }}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" id="clear-data-btn" aria-label="Bersihkan data dan kembali ke kondisi awal">
           <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Data
         </a>
-        {% if result.rows %}
-          <form method="post" class="mb-0 d-flex gap-2 align-items-center" aria-label="Export CSV dan filter saat ini">
-            {% csrf_token %}
-            <input type="hidden" name="export_csv" value="1" />
-            <input type="hidden" name="excluded_banks" value="{{ excluded_banks|default:'' }}" />
-            <input type="hidden" name="excluded_branches" value="{{ excluded_branches|default:'' }}" />
-            <button type="submit" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke CSV">
-              Export CSV
-            </button>
-          </form>
-        {% endif %}
         {% if result.rows %}
           <a href="{% url 'export_pdf' %}" class="btn btn-light btn-sm px-3 fw-semibold shadow-sm text-primary" aria-label="Export hasil ke PDF">
             <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
@@ -1273,5 +1258,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tokenEl) fd.append("csrfmiddlewaretoken", tokenEl.value);
     navigator.sendBeacon("{% url 'cleanup_pdf' %}", fd);
   });
+
+  if (window.location.search.includes("r=1")) {
+    history.replaceState(null, "", window.location.pathname);
+  }
+
 </script>
 {% endblock %}

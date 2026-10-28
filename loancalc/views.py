@@ -8,7 +8,11 @@ import json
 import time
 from django.views.decorators.http import require_POST
 
-from django.shortcuts import render
+import copy
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils.dateparse import parse_date
 from django.http import HttpRequest, HttpResponse
 
 from .utils import extract_slik_data, extract_name, is_kualitas_bermasalah, calculate_credit_analysis, serialize_result_for_export
@@ -102,6 +106,29 @@ def parse_percent_input(val, default=0.0) -> float:
     except Exception:
         return default
 
+def _json_default(o):
+    if isinstance(o, Decimal):
+        return float(o)
+    if hasattr(o, "item"):        # numpy int64 / float64
+        try:
+            return o.item()
+        except Exception:
+            pass
+    return str(o)
+
+
+def _restore_dates(state: dict) -> dict:
+    res = state.get("result") or {}
+    for row in res.get("rows", []):
+        for k in ("start_date", "end_date"):
+            v = row.get(k)
+            if isinstance(v, str):
+                try:
+                    row[k] = parse_date(v[:10])
+                except ValueError:
+                    row[k] = None
+    return state
+
 def loan_calc_view(request: HttpRequest) -> HttpResponse:
     result = None
     error = None
@@ -109,8 +136,17 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
 
     _purge_expired_cache()
 
-    # Membuka halaman baru (GET) / Clear Data = mulai bersih, PDF lama dihapus
     if request.method == "GET":
+        state = request.session.pop("loan_view_state", None)   # pop = sekali pakai
+        if request.GET.get("r") == "1" and state:
+            cached = _get_cached_pdf(request)
+            context = {
+                **_restore_dates(copy.deepcopy(state)),
+                "cached_pdf_name": cached[1] if cached else "",
+            }
+            return render(request, "loancalc/loan_form.html", context)
+
+        # reload / buka baru / Clear Data = kosong total
         _clear_cached_pdf(request)
 
     raw_exclude_banks = request.POST.get("excluded_banks", "") if request.method == "POST" else ""
@@ -265,21 +301,21 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
                     )
                     request.session["last_loan_result"] = serialize_result_for_export(result)
 
-                if request.POST.get("export_csv") == "1" and result and result.get("rows"):
-                    import io
-                    import pandas as _pd
+                # if request.POST.get("export_csv") == "1" and result and result.get("rows"):
+                #     import io
+                #     import pandas as _pd
 
-                    export_df = _pd.DataFrame(result["rows"])
-                    csv_buffer = io.StringIO()
-                    export_df.to_csv(csv_buffer, index=False)
+                #     export_df = _pd.DataFrame(result["rows"])
+                #     csv_buffer = io.StringIO()
+                #     export_df.to_csv(csv_buffer, index=False)
 
-                    safe_name = (result.get("nama") or "nasabah").replace(" ", "_")
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"{safe_name}_loan_summary_{timestamp}.csv"
+                #     safe_name = (result.get("nama") or "nasabah").replace(" ", "_")
+                #     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                #     filename = f"{safe_name}_loan_summary_{timestamp}.csv"
 
-                    response = HttpResponse(csv_buffer.getvalue(), content_type="text/csv")
-                    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-                    return response
+                #     response = HttpResponse(csv_buffer.getvalue(), content_type="text/csv")
+                #     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+                #     return response
 
             except Exception as e:
                 logger.exception("Gagal memproses PDF SLIK OJK")
@@ -325,6 +361,12 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
             result.get("problem_facilities", []) if result else [], default=str
         ),
     }
+
+    if request.method == "POST":
+        state = {k: v for k, v in context.items() if k != "cached_pdf_name"}
+        state["result"] = json.loads(json.dumps(result, default=_json_default)) if result else None
+        request.session["loan_view_state"] = state
+        return redirect(f"{reverse('loan_calc')}?r=1")
 
     return render(request, "loancalc/loan_form.html", context)
 
