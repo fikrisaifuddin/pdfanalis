@@ -2,11 +2,6 @@
 {% load static %}
 {% block content %}
 
-<!-- ============================================================
-     CARD UTAMA — membungkus header, tombol aksi, dan riwayat foto
-     dalam satu wadah konsisten, senada dengan halaman lain (card
-     putih, radius besar, shadow lembut).
-     ============================================================ -->
 <div class="survei-card">
 
   <div class="survei-header">
@@ -21,45 +16,6 @@
     <i class="bi bi-camera-fill"></i> Buka Kamera
   </button>
 
-  <div class="survei-section-title">
-    <i class="bi bi-clock-history"></i> Riwayat Bukti Survei
-    {% if daftar %}<span class="survei-count-badge">{{ daftar|length }}</span>{% endif %}
-  </div>
-
-  <div class="row g-3">
-    {% for f in daftar %}
-    <div class="col-6 col-md-3">
-      <div class="foto-card">
-        <img src="{{ f.foto.url }}" class="foto-img">
-        <div class="foto-actions">
-          <a href="{{ f.foto.url }}" download class="foto-icon-btn" title="Unduh">
-            <i class="bi bi-download"></i>
-          </a>
-          <form method="post" action="{% url 'buktisurvei:hapus' f.pk %}"
-                onsubmit="return confirm('Hapus foto ini?');" class="d-inline">
-            {% csrf_token %}
-            <button type="submit" class="foto-icon-btn foto-icon-danger" title="Hapus">
-              <i class="bi bi-trash-fill"></i>
-            </button>
-          </form>
-        </div>
-        <div class="foto-overlay">
-          {{ f.diambil_pada|date:"d M Y, H:i" }}
-          {% if f.keterangan %}<br><span class="foto-ket">{{ f.keterangan }}</span>{% endif %}
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="empty-state">
-        <div class="empty-state-icon"><i class="bi bi-images"></i></div>
-        <p class="empty-state-title">Belum ada bukti survei</p>
-        <p class="empty-state-sub">Foto yang kamu ambil akan muncul di sini</p>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-
 </div>
 
 <!-- ============================================================
@@ -69,7 +25,6 @@
   <div class="camera-frame-wrap bg-dark">
     <video id="videoPreview" autoplay playsinline muted></video>
 
-    <!-- Watermark LIVE, tampil di atas video, real-time -->
     <div id="liveOverlay" class="live-overlay d-none">
       <div class="lo-top">
         <img src="{% static 'images/logo_btn_blue.png' %}" class="lo-logo" alt="logo">
@@ -89,6 +44,9 @@
       </div>
     </div>
 
+    <button type="button" id="flipCameraBtn" class="camera-flip-btn" title="Balik kamera">
+      <i class="bi bi-arrow-repeat"></i>
+    </button>
     <button type="button" id="closeCameraBtn" class="camera-close-btn" title="Tutup">
       <i class="bi bi-x-lg"></i>
     </button>
@@ -112,6 +70,9 @@
   </div>
 </div>
 
+<!-- ============================================================
+     PREVIEW HASIL FOTO
+     ============================================================ -->
 <div id="previewStage" class="camera-fullscreen d-none">
   <div class="camera-frame-wrap bg-dark">
     <canvas id="photoCanvas" class="preview-canvas"></canvas>
@@ -120,29 +81,19 @@
     <button type="button" id="retakeBtn" class="btn btn-outline-light">
       <i class="bi bi-arrow-counterclockwise"></i> Ulangi
     </button>
-    <button type="button" id="downloadBtn" class="btn btn-outline-light">
+    <button type="button" id="downloadBtn" class="btn btn-capture">
       <i class="bi bi-download"></i> Unduh
     </button>
-    <button type="button" id="saveBtn" class="btn btn-capture">
-      <i class="bi bi-cloud-arrow-up-fill"></i> Simpan
+    <button type="button" id="closePreviewBtn" class="btn btn-outline-light">
+      <i class="bi bi-x-lg"></i> Tutup
     </button>
   </div>
 </div>
-
-<form id="uploadForm" method="post" enctype="multipart/form-data" class="d-none">
-  {% csrf_token %}
-  <input type="file" name="foto" id="fotoInput">
-  <input type="text" name="keterangan" id="keteranganHidden">
-</form>
 
 {% endblock %}
 
 {% block extra_css %}
 <style>
-  /* ============================================================
-     DESIGN TOKENS — dipakai bersama supaya radius/spacing/shadow
-     seragam di seluruh halaman ini (card, tombol, alert, foto).
-     ============================================================ */
   :root {
     --survei-radius-lg: 1.25rem;
     --survei-radius-md: 0.9rem;
@@ -154,7 +105,7 @@
     --survei-accent: #4da3ff;
   }
 
-  /* ===== Card pembungkus utama halaman ===== */
+  /* ===== Card utama ===== */
   .survei-card {
     background: #fff;
     border: 1px solid var(--survei-border);
@@ -192,31 +143,7 @@
     line-height: 1.4;
   }
 
-  .survei-section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    color: #6b7688;
-    margin: 1.9rem 0 1rem;
-    padding-top: 1.4rem;
-    border-top: 1px solid var(--survei-border);
-  }
-  .survei-count-badge {
-    background: #eaf1ff;
-    color: var(--survei-blue);
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 0.15em 0.6em;
-    border-radius: 999px;
-    text-transform: none;
-    letter-spacing: 0;
-  }
-
-  /* ===== Fullscreen kamera ala aplikasi Time Mark ===== */
+  /* ===== Fullscreen kamera ===== */
   .camera-fullscreen {
     position: fixed;
     inset: 0;
@@ -234,12 +161,11 @@
     align-items: center;
     justify-content: center;
   }
-  /* FIX ZOOM: pakai "contain" (bukan "cover") supaya seluruh frame kamera
-     terlihat utuh, tidak di-crop/diperbesar. Sisa ruang jadi bar hitam. */
+  /* cover = video memenuhi layar (full screen, tanpa bar hitam) */
   .camera-frame-wrap video {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
   }
   .preview-canvas {
@@ -249,10 +175,10 @@
     display: block;
   }
 
-  .camera-close-btn {
+  .camera-close-btn,
+  .camera-flip-btn {
     position: absolute;
     top: 1rem;
-    right: 1rem;
     z-index: 3;
     width: 38px; height: 38px;
     border-radius: 50%;
@@ -263,9 +189,12 @@
     backdrop-filter: blur(2px);
     transition: background-color 0.15s ease;
   }
-  .camera-close-btn:hover { background: rgba(0,0,0,0.65); }
+  .camera-close-btn { right: 1rem; }
+  .camera-flip-btn  { left: 1rem; }
+  .camera-close-btn:hover,
+  .camera-flip-btn:hover { background: rgba(0,0,0,0.65); }
 
-  /* ===== Watermark LIVE di atas video ===== */
+  /* ===== Watermark LIVE ===== */
   .live-overlay {
     position: absolute;
     inset: 0;
@@ -279,6 +208,7 @@
     display: flex;
     justify-content: flex-end;
     padding: 1rem;
+    padding-top: 4rem; /* kasih ruang supaya tidak nabrak tombol close */
   }
   .lo-logo { width: 22%; max-width: 110px; height: auto; }
 
@@ -309,7 +239,7 @@
   .lo-date-col { display: flex; flex-direction: column; font-size: 0.85rem; }
   .lo-day { color: rgba(255,255,255,0.85); }
 
-  /* ===== Kontrol bawah kamera ===== */
+  /* ===== Kontrol bawah ===== */
   .camera-controls {
     padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
     background: #000;
@@ -325,7 +255,7 @@
   }
   .preview-controls .btn {
     flex: 1 1 auto;
-    min-width: 110px;
+    min-width: 100px;
     border-radius: 999px;
     font-weight: 600;
   }
@@ -347,7 +277,7 @@
     font-size: 0.95rem;
   }
 
-  /* ===== Alert izin kamera / lokasi ===== */
+  /* ===== Alert izin ===== */
   .perm-alert {
     position: absolute;
     left: 1rem; right: 1rem; top: 50%;
@@ -382,62 +312,6 @@
   }
   .perm-alert-btn:hover { background: #ffca2c; }
 
-  /* ===== Kartu foto riwayat ===== */
-  .foto-card {
-    position: relative;
-    border-radius: var(--survei-radius-md);
-    overflow: hidden;
-    box-shadow: var(--survei-shadow);
-    background: #000;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .foto-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(13, 38, 76, 0.14);
-  }
-  .foto-img { width: 100%; height: 180px; object-fit: cover; display: block; }
-  .foto-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
-    color: #fff; font-size: 0.72rem; padding: 0.5rem 0.6rem 0.4rem;
-  }
-  .foto-ket { opacity: 0.85; }
-  .foto-actions {
-    position: absolute; top: 0.4rem; right: 0.4rem;
-    display: flex; gap: 0.3rem; z-index: 2;
-  }
-  .foto-icon-btn {
-    width: 30px; height: 30px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.85);
-    color: var(--survei-blue);
-    border: none; border-radius: 50%;
-    font-size: 0.85rem;
-    transition: background-color 0.15s ease;
-  }
-  .foto-icon-btn:hover { background: #ffffff; }
-  .foto-icon-danger { color: #dc3545; }
-
-  /* ===== Empty state, selaras dgn radius/border card lain ===== */
-  .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    border: 2px dashed var(--survei-border);
-    border-radius: var(--survei-radius-md);
-    background: #f8fafc;
-  }
-  .empty-state-icon {
-    width: 56px; height: 56px;
-    margin: 0 auto 0.8rem;
-    border-radius: 50%;
-    background: #eaf1ff;
-    color: var(--survei-blue);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem;
-  }
-  .empty-state-title { font-weight: 600; color: #46536b; margin-bottom: 0.2rem; }
-  .empty-state-sub { font-size: 0.85rem; color: #8a94a6; margin: 0; }
-
   @media (max-width: 576px) {
     .survei-card { padding: 1.25rem; border-radius: var(--survei-radius-md); }
     .btn-capture-lg { width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -450,21 +324,19 @@
 (function () {
   const openCameraBtn = document.getElementById('openCameraBtn');
   const closeCameraBtn = document.getElementById('closeCameraBtn');
+  const flipCameraBtn = document.getElementById('flipCameraBtn');
   const video = document.getElementById('videoPreview');
   const captureBtn = document.getElementById('captureBtn');
   const captureBtnText = document.getElementById('captureBtnText');
   const retakeBtn = document.getElementById('retakeBtn');
-  const saveBtn = document.getElementById('saveBtn');
   const downloadBtn = document.getElementById('downloadBtn');
+  const closePreviewBtn = document.getElementById('closePreviewBtn');
   const canvas = document.getElementById('photoCanvas');
   const ctx = canvas.getContext('2d');
   const cameraStage = document.getElementById('cameraStage');
   const previewStage = document.getElementById('previewStage');
   const permissionAlert = document.getElementById('permissionAlert');
   const retryBtn = document.getElementById('retryPermissionBtn');
-  const uploadForm = document.getElementById('uploadForm');
-  const fotoInput = document.getElementById('fotoInput');
-  const keteranganHidden = document.getElementById('keteranganHidden');
 
   const liveOverlay = document.getElementById('liveOverlay');
   const loKode = document.getElementById('loKode');
@@ -473,9 +345,8 @@
   const loDate = document.getElementById('loDate');
   const loDay = document.getElementById('loDay');
 
-  const logoUrl = "{% static 'images/logo_btn_blue.png' %}";
   const logoImg = new Image();
-  logoImg.src = logoUrl;
+  logoImg.src = "{% static 'images/logo_btn_blue.png' %}";
 
   const BLUE_ACCENT = '#4da3ff';
 
@@ -487,6 +358,7 @@
   let clockTimer = null;
   let addressTimer = null;
   let watchId = null;
+  let facing = 'environment'; // 'environment' = belakang, 'user' = depan
 
   function generateKodeFoto() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -495,7 +367,7 @@
     return out;
   }
 
-  // ===== Buka / tutup kamera fullscreen =====
+  // ===== Buka / tutup =====
   openCameraBtn.addEventListener('click', function () {
     cameraStage.classList.remove('d-none');
     document.body.style.overflow = 'hidden';
@@ -503,10 +375,13 @@
   });
 
   closeCameraBtn.addEventListener('click', stopEverythingAndClose);
+  closePreviewBtn.addEventListener('click', stopEverythingAndClose);
 
   function stopEverythingAndClose() {
     if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    currentStream = null;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null;
     clearInterval(clockTimer);
     clearInterval(addressTimer);
     cameraStage.classList.add('d-none');
@@ -514,22 +389,26 @@
     document.body.style.overflow = '';
   }
 
+  // ===== Kamera =====
   function startCamera() {
     permissionAlert.classList.add('d-none');
     liveOverlay.classList.add('d-none');
     currentKode = generateKodeFoto();
     loKode.textContent = currentKode;
+    startStream();
+    startLocation();
+  }
 
-    // FIX ZOOM: sensor kamera HP aslinya 4:3. Kalau diminta 9:16 (1080x1920),
-    // browser memotong (crop) sensornya sehingga terlihat ter-zoom.
-    // Jadi minta rasio 4:3 sesuai orientasi layar, biar tidak ada crop.
+  function startStream() {
+    if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    captureBtn.disabled = true;
+
     const portrait = window.innerHeight > window.innerWidth;
     const constraints = {
       video: {
-        facingMode: { ideal: 'environment' },
+        facingMode: { ideal: facing },
         width:  { ideal: portrait ? 1200 : 1600 },
-        height: { ideal: portrait ? 1600 : 1200 },
-        aspectRatio: { ideal: portrait ? 3 / 4 : 4 / 3 }
+        height: { ideal: portrait ? 1600 : 1200 }
       },
       audio: false
     };
@@ -539,7 +418,7 @@
         currentStream = stream;
         video.srcObject = stream;
 
-        // Paksa zoom ke minimum (1x) kalau browser mendukung (Android Chrome)
+        // Zoom minimum (1x) kalau didukung
         try {
           const track = stream.getVideoTracks()[0];
           const caps = track.getCapabilities ? track.getCapabilities() : {};
@@ -553,6 +432,11 @@
         startLiveClock();
       })
       .catch(showPermissionError);
+  }
+
+  function startLocation() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    clearInterval(addressTimer);
 
     if ('geolocation' in navigator) {
       watchId = navigator.geolocation.watchPosition(
@@ -560,7 +444,6 @@
         showPermissionError,
         { enableHighAccuracy: true }
       );
-      // Ambil alamat awal, lalu refresh berkala biar gak spam API tiap gerak
       pollAddress();
       addressTimer = setInterval(pollAddress, 20000);
     } else {
@@ -568,15 +451,25 @@
     }
   }
 
+  // Bolak-balik kamera depan / belakang
+  flipCameraBtn.addEventListener('click', function () {
+    facing = (facing === 'environment') ? 'user' : 'environment';
+    startStream();
+  });
+
   async function pollAddress() {
-    if (!lastCoords) return;
-    loAddress.textContent = 'Mendeteksi lokasi...';
+    if (!lastCoords) {
+      // koordinat belum ada, coba lagi sebentar
+      setTimeout(pollAddress, 1500);
+      return;
+    }
     const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
     lastAddress = alamat;
     loAddress.textContent = alamat;
   }
 
   function startLiveClock() {
+    clearInterval(clockTimer);
     updateClock();
     clockTimer = setInterval(updateClock, 1000);
   }
@@ -595,6 +488,7 @@
 
   retryBtn.addEventListener('click', startCamera);
 
+  // ===== Alamat =====
   function buildDetailedAddress(data) {
     const a = data.address || {};
     const parts = [];
@@ -641,23 +535,20 @@
     const words = text.split(' ');
     let line = '';
     let y = startY;
-    let lines = 0;
     for (let i = 0; i < words.length; i++) {
       const test = line + words[i] + ' ';
       if (ctx.measureText(test).width > maxWidth && line !== '') {
         ctx.fillText(line.trim(), x, y);
         line = words[i] + ' ';
         y += lineHeight;
-        lines++;
       } else {
         line = test;
       }
     }
     ctx.fillText(line.trim(), x, y);
-    lines++;
-    return lines;
   }
 
+  // ===== Ambil foto =====
   captureBtn.addEventListener('click', async function () {
     if (!lastCoords) {
       alert('Lokasi belum terdeteksi, tunggu sebentar lalu coba lagi.');
@@ -670,12 +561,15 @@
     const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
     const kodeFoto = currentKode || generateKodeFoto();
 
-    // FIX ZOOM: ambil FRAME PENUH dari kamera apa adanya (tanpa crop ke rasio
-    // layar). Dengan begitu foto yang tersimpan sama luasnya dengan yang
-    // terlihat di preview (object-fit: contain).
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Crop frame video persis seperti yang terlihat di layar (object-fit: cover)
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const boxW = video.clientWidth, boxH = video.clientHeight;
+    const scale = Math.max(boxW / vw, boxH / vh);
+    const sw = boxW / scale, sh = boxH / scale;
+    const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+    canvas.width = Math.round(sw);
+    canvas.height = Math.round(sh);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
     const now = new Date();
     const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -755,7 +649,6 @@
       const logoH = logoImg.naturalHeight ? (logoW * logoImg.naturalHeight / logoImg.naturalWidth) : logoW * 0.4;
       const lp = 12;
       ctx.drawImage(logoImg, W - logoW - lp, lp, logoW, logoH);
-
       finishCapture();
     }
 
@@ -771,7 +664,9 @@
     cameraStage.classList.add('d-none');
     previewStage.classList.remove('d-none');
     if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
+    currentStream = null;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null;
     clearInterval(clockTimer);
     clearInterval(addressTimer);
     canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', 0.92);
@@ -779,6 +674,7 @@
     captureBtnText.textContent = 'Ambil Foto';
   }
 
+  // ===== Ulangi =====
   retakeBtn.addEventListener('click', function () {
     previewStage.classList.add('d-none');
     cameraStage.classList.remove('d-none');
@@ -786,6 +682,7 @@
     startCamera();
   });
 
+  // ===== Unduh =====
   downloadBtn.addEventListener('click', function () {
     if (!lastBlob) return;
     const url = URL.createObjectURL(lastBlob);
@@ -795,18 +692,7 @@
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(url); // url
-  });
-
-  saveBtn.addEventListener('click', function () {
-    if (!lastBlob) return;
-    const file = new File([lastBlob], 'survei_' + Date.now() + '.jpg', { type: 'image/jpeg' });
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    fotoInput.files = dt.files;
-    keteranganHidden.value = '';
-    uploadForm.submit();
-    stopEverythingAndClose();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   });
 })();
 </script>
