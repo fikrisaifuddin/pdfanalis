@@ -19,11 +19,20 @@
 </div>
 
 <!-- ============================================================
-     KAMERA FULLSCREEN
+     KAMERA FULLSCREEN (gaya kamera bawaan HP, mode 9:16)
      ============================================================ -->
 <div id="cameraStage" class="camera-fullscreen d-none">
-  <div class="camera-frame-wrap bg-dark">
 
+  <div class="camera-topbar">
+    <button type="button" id="flipCameraBtn" class="cam-icon-btn" title="Balik kamera">
+      <i class="bi bi-arrow-repeat"></i>
+    </button>
+    <button type="button" id="closeCameraBtn" class="cam-icon-btn" title="Tutup">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="camera-frame-wrap">
     <div id="videoBox" class="video-box">
       <video id="videoPreview" autoplay playsinline muted></video>
 
@@ -46,13 +55,6 @@
         </div>
       </div>
     </div>
-
-    <button type="button" id="flipCameraBtn" class="camera-flip-btn" title="Balik kamera">
-      <i class="bi bi-arrow-repeat"></i>
-    </button>
-    <button type="button" id="closeCameraBtn" class="camera-close-btn" title="Tutup">
-      <i class="bi bi-x-lg"></i>
-    </button>
   </div>
 
   <div id="permissionAlert" class="perm-alert d-none" role="alert">
@@ -67,9 +69,10 @@
   </div>
 
   <div class="camera-controls">
-    <button type="button" id="captureBtn" class="btn btn-capture" disabled>
-      <i class="bi bi-camera-fill"></i> <span id="captureBtnText">Ambil Foto</span>
+    <button type="button" id="captureBtn" class="shutter-btn" disabled title="Ambil Foto">
+      <span class="shutter-inner"></span>
     </button>
+    <div id="captureBtnText" class="shutter-label d-none">Memproses...</div>
   </div>
 </div>
 
@@ -77,7 +80,7 @@
      PREVIEW HASIL FOTO
      ============================================================ -->
 <div id="previewStage" class="camera-fullscreen d-none">
-  <div class="camera-frame-wrap bg-dark">
+  <div class="camera-frame-wrap">
     <canvas id="photoCanvas" class="preview-canvas"></canvas>
   </div>
   <div class="camera-controls preview-controls">
@@ -156,27 +159,51 @@
     flex-direction: column;
   }
 
+  /* Bar hitam atas (flip & tutup) */
+  .camera-topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 1rem;
+    padding-top: calc(0.7rem + env(safe-area-inset-top));
+    background: #000;
+  }
+  .cam-icon-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.14);
+    color: #fff;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    transition: background-color 0.15s ease;
+  }
+  .cam-icon-btn:hover { background: rgba(255,255,255,0.25); }
+
   .camera-frame-wrap {
     position: relative;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #000;
   }
 
-  /* Kotak video: ukurannya diatur JS (fitBox) sesuai rasio asli kamera,
-     jadi frame tampil utuh (tidak zoom) dan overlay pas di atasnya. */
+  /* Ukuran kotak video diatur JS (fitBox) sesuai rasio 9:16 */
   .video-box {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background: #111;
   }
   .video-box video {
     width: 100%;
     height: 100%;
-    object-fit: fill;
+    object-fit: cover;
     display: block;
   }
 
@@ -186,25 +213,6 @@
     object-fit: contain;
     display: block;
   }
-
-  .camera-close-btn,
-  .camera-flip-btn {
-    position: absolute;
-    top: 1rem;
-    z-index: 3;
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.45);
-    color: #fff;
-    border: none;
-    display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(2px);
-    transition: background-color 0.15s ease;
-  }
-  .camera-close-btn { right: 1rem; }
-  .camera-flip-btn  { left: 1rem; }
-  .camera-close-btn:hover,
-  .camera-flip-btn:hover { background: rgba(0,0,0,0.65); }
 
   /* ===== Watermark LIVE ===== */
   .live-overlay {
@@ -252,11 +260,13 @@
 
   /* ===== Kontrol bawah ===== */
   .camera-controls {
+    flex: 0 0 auto;
     padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
     background: #000;
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
+    align-items: center;
+    gap: 0.4rem;
   }
   .preview-controls {
     flex-direction: row;
@@ -270,6 +280,26 @@
     border-radius: 999px;
     font-weight: 600;
   }
+
+  /* Tombol shutter ala kamera HP */
+  .shutter-btn {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: transparent;
+    padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .shutter-btn:active { transform: scale(0.92); }
+  .shutter-btn:disabled { opacity: 0.4; }
+  .shutter-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: #fff;
+    display: block;
+  }
+  .shutter-label { color: #fff; font-size: 0.8rem; }
 
   .btn-capture {
     background: linear-gradient(135deg, var(--survei-blue), var(--survei-blue-dark));
@@ -333,6 +363,11 @@
 {% block extra_js %}
 <script>
 (function () {
+  // Rasio frame kamera. 9:16 = seperti mode 9:16 di kamera bawaan HP.
+  // Kalau mau 3:4, ganti jadi RATIO_W = 3, RATIO_H = 4.
+  const RATIO_W = 9;
+  const RATIO_H = 16;
+
   const openCameraBtn = document.getElementById('openCameraBtn');
   const closeCameraBtn = document.getElementById('closeCameraBtn');
   const flipCameraBtn = document.getElementById('flipCameraBtn');
@@ -372,17 +407,21 @@
   let watchId = null;
   let facing = 'environment'; // 'environment' = belakang, 'user' = depan
 
-  // ===== Sesuaikan kotak video dengan rasio asli kamera (tanpa crop/zoom) =====
+  // ===== Atur ukuran kotak video: selebar layar dengan rasio tetap =====
   function fitBox() {
-    const vw = video.videoWidth, vh = video.videoHeight;
-    if (!vw || !vh) return;
     const wrap = videoBox.parentElement;
-    const s = Math.min(wrap.clientWidth / vw, wrap.clientHeight / vh);
-    videoBox.style.width = Math.round(vw * s) + 'px';
-    videoBox.style.height = Math.round(vh * s) + 'px';
+    const availW = wrap.clientWidth;
+    const availH = wrap.clientHeight;
+    if (!availW || !availH) return;
+    let w = availW;
+    let h = w * RATIO_H / RATIO_W;
+    if (h > availH) {          // kalau kepanjangan, sesuaikan dengan tinggi
+      h = availH;
+      w = h * RATIO_W / RATIO_H;
+    }
+    videoBox.style.width = Math.round(w) + 'px';
+    videoBox.style.height = Math.round(h) + 'px';
   }
-  video.addEventListener('loadedmetadata', fitBox);
-  video.addEventListener('resize', fitBox);
   window.addEventListener('resize', fitBox);
 
   function generateKodeFoto() {
@@ -396,6 +435,7 @@
   openCameraBtn.addEventListener('click', function () {
     cameraStage.classList.remove('d-none');
     document.body.style.overflow = 'hidden';
+    fitBox();
     startCamera();
   });
 
@@ -428,12 +468,14 @@
     if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
     captureBtn.disabled = true;
 
-    const portrait = window.innerHeight > window.innerWidth;
+    // Minta stream langsung berrasio 9:16 (seperti mode 9:16 kamera HP),
+    // jadi tidak perlu di-zoom/crop paksa.
     const constraints = {
       video: {
         facingMode: { ideal: facing },
-        width:  { ideal: portrait ? 1200 : 1600 },
-        height: { ideal: portrait ? 1600 : 1200 }
+        width:  { ideal: 1080 },
+        height: { ideal: 1920 },
+        aspectRatio: { ideal: RATIO_W / RATIO_H }
       },
       audio: false
     };
@@ -580,15 +622,21 @@
     }
 
     captureBtn.disabled = true;
-    captureBtnText.textContent = 'Memproses...';
+    captureBtnText.classList.remove('d-none');
 
     const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
     const kodeFoto = currentKode || generateKodeFoto();
 
-    // Ambil FRAME PENUH kamera (sama persis dengan yang terlihat di layar)
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Crop frame video persis seperti yang terlihat di kotak (object-fit: cover).
+    // Kalau stream sudah 9:16, tidak ada yang terpotong.
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const boxW = video.clientWidth, boxH = video.clientHeight;
+    const scale = Math.max(boxW / vw, boxH / vh);
+    const sw = boxW / scale, sh = boxH / scale;
+    const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+    canvas.width = Math.round(sw);
+    canvas.height = Math.round(sh);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
     const now = new Date();
     const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -690,7 +738,7 @@
     clearInterval(addressTimer);
     canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', 0.92);
     captureBtn.disabled = false;
-    captureBtnText.textContent = 'Ambil Foto';
+    captureBtnText.classList.add('d-none');
   }
 
   // ===== Ulangi =====
@@ -698,6 +746,7 @@
     previewStage.classList.add('d-none');
     cameraStage.classList.remove('d-none');
     lastBlob = null;
+    fitBox();
     startCamera();
   });
 
