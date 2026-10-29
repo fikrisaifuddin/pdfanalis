@@ -23,22 +23,25 @@
      ============================================================ -->
 <div id="cameraStage" class="camera-fullscreen d-none">
   <div class="camera-frame-wrap bg-dark">
-    <video id="videoPreview" autoplay playsinline muted></video>
 
-    <div id="liveOverlay" class="live-overlay d-none">
-      <div class="lo-top">
-        <img src="{% static 'images/logo_btn_blue.png' %}" class="lo-logo" alt="logo">
-      </div>
-      <div class="lo-bottom">
-        <div class="lo-kode">Kode Foto: <span id="loKode">-</span></div>
-        <div class="lo-divider-h"></div>
-        <div class="lo-address" id="loAddress">Mendeteksi lokasi...</div>
-        <div class="lo-time-row">
-          <span class="lo-time" id="loTime">--:--</span>
-          <span class="lo-vdivider"></span>
-          <div class="lo-date-col">
-            <span class="lo-date" id="loDate">-</span>
-            <span class="lo-day" id="loDay">-</span>
+    <div id="videoBox" class="video-box">
+      <video id="videoPreview" autoplay playsinline muted></video>
+
+      <div id="liveOverlay" class="live-overlay d-none">
+        <div class="lo-top">
+          <img src="{% static 'images/logo_btn_blue.png' %}" class="lo-logo" alt="logo">
+        </div>
+        <div class="lo-bottom">
+          <div class="lo-kode">Kode Foto: <span id="loKode">-</span></div>
+          <div class="lo-divider-h"></div>
+          <div class="lo-address" id="loAddress">Mendeteksi lokasi...</div>
+          <div class="lo-time-row">
+            <span class="lo-time" id="loTime">--:--</span>
+            <span class="lo-vdivider"></span>
+            <div class="lo-date-col">
+              <span class="lo-date" id="loDate">-</span>
+              <span class="lo-day" id="loDay">-</span>
+            </div>
           </div>
         </div>
       </div>
@@ -82,7 +85,7 @@
       <i class="bi bi-arrow-counterclockwise"></i> Ulangi
     </button>
     <button type="button" id="downloadBtn" class="btn btn-capture">
-      <i class="bi bi-download"></i> Unduh
+      <i class="bi bi-download"></i> Simpan ke Galeri
     </button>
     <button type="button" id="closePreviewBtn" class="btn btn-outline-light">
       <i class="bi bi-x-lg"></i> Tutup
@@ -161,13 +164,22 @@
     align-items: center;
     justify-content: center;
   }
-  /* cover = video memenuhi layar (full screen, tanpa bar hitam) */
-  .camera-frame-wrap video {
+
+  /* Kotak video: ukurannya diatur JS (fitBox) sesuai rasio asli kamera,
+     jadi frame tampil utuh (tidak zoom) dan overlay pas di atasnya. */
+  .video-box {
+    position: relative;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    overflow: hidden;
+  }
+  .video-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
     display: block;
   }
+
   .preview-canvas {
     width: 100%;
     height: 100%;
@@ -208,7 +220,6 @@
     display: flex;
     justify-content: flex-end;
     padding: 1rem;
-    padding-top: 4rem; /* kasih ruang supaya tidak nabrak tombol close */
   }
   .lo-logo { width: 22%; max-width: 110px; height: auto; }
 
@@ -326,6 +337,7 @@
   const closeCameraBtn = document.getElementById('closeCameraBtn');
   const flipCameraBtn = document.getElementById('flipCameraBtn');
   const video = document.getElementById('videoPreview');
+  const videoBox = document.getElementById('videoBox');
   const captureBtn = document.getElementById('captureBtn');
   const captureBtnText = document.getElementById('captureBtnText');
   const retakeBtn = document.getElementById('retakeBtn');
@@ -359,6 +371,19 @@
   let addressTimer = null;
   let watchId = null;
   let facing = 'environment'; // 'environment' = belakang, 'user' = depan
+
+  // ===== Sesuaikan kotak video dengan rasio asli kamera (tanpa crop/zoom) =====
+  function fitBox() {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return;
+    const wrap = videoBox.parentElement;
+    const s = Math.min(wrap.clientWidth / vw, wrap.clientHeight / vh);
+    videoBox.style.width = Math.round(vw * s) + 'px';
+    videoBox.style.height = Math.round(vh * s) + 'px';
+  }
+  video.addEventListener('loadedmetadata', fitBox);
+  video.addEventListener('resize', fitBox);
+  window.addEventListener('resize', fitBox);
 
   function generateKodeFoto() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -459,8 +484,7 @@
 
   async function pollAddress() {
     if (!lastCoords) {
-      // koordinat belum ada, coba lagi sebentar
-      setTimeout(pollAddress, 1500);
+      setTimeout(pollAddress, 1500); // koordinat belum ada, coba lagi
       return;
     }
     const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
@@ -561,15 +585,10 @@
     const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
     const kodeFoto = currentKode || generateKodeFoto();
 
-    // Crop frame video persis seperti yang terlihat di layar (object-fit: cover)
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const boxW = video.clientWidth, boxH = video.clientHeight;
-    const scale = Math.max(boxW / vw, boxH / vh);
-    const sw = boxW / scale, sh = boxH / scale;
-    const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
-    canvas.width = Math.round(sw);
-    canvas.height = Math.round(sh);
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    // Ambil FRAME PENUH kamera (sama persis dengan yang terlihat di layar)
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const now = new Date();
     const jamMenit = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -682,13 +701,24 @@
     startCamera();
   });
 
-  // ===== Unduh =====
-  downloadBtn.addEventListener('click', function () {
+  // ===== Simpan ke Galeri (menu Share HP), cadangan: unduh biasa =====
+  downloadBtn.addEventListener('click', async function () {
     if (!lastBlob) return;
+    const file = new File([lastBlob], 'bukti_survei_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return; // user batal
+      }
+    }
+
     const url = URL.createObjectURL(lastBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'bukti_survei_' + Date.now() + '.jpg';
+    a.download = file.name;
     document.body.appendChild(a);
     a.click();
     a.remove();
