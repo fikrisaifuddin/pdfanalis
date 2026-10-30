@@ -19,7 +19,7 @@
 </div>
 
 <!-- ============================================================
-     KAMERA FULLSCREEN (gaya kamera bawaan HP, mode 9:16)
+     KAMERA FULLSCREEN
      ============================================================ -->
 <div id="cameraStage" class="camera-fullscreen d-none">
 
@@ -60,8 +60,8 @@
   <div id="permissionAlert" class="perm-alert d-none" role="alert">
     <div class="perm-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
     <div class="perm-alert-body">
-      <div class="perm-alert-title">Kamera / lokasi belum diizinkan</div>
-      <p class="perm-alert-text">Izinkan lewat pop-up browser, atau buka pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".</p>
+      <div class="perm-alert-title" id="permTitle">Kamera / lokasi belum diizinkan</div>
+      <p class="perm-alert-text" id="permText">Izinkan lewat pop-up browser, atau buka pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".</p>
       <button type="button" class="perm-alert-btn" id="retryPermissionBtn">
         <i class="bi bi-arrow-clockwise"></i> Coba Lagi
       </button>
@@ -111,7 +111,6 @@
     --survei-accent: #4da3ff;
   }
 
-  /* ===== Card utama ===== */
   .survei-card {
     background: #fff;
     border: 1px solid var(--survei-border);
@@ -119,116 +118,59 @@
     box-shadow: var(--survei-shadow);
     padding: 1.75rem;
   }
-  .survei-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.9rem;
-    margin-bottom: 1.4rem;
-  }
+  .survei-header { display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 1.4rem; }
   .survei-header-icon {
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
+    flex-shrink: 0; width: 44px; height: 44px;
     border-radius: var(--survei-radius-sm);
-    background: #eaf1ff;
-    color: var(--survei-blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #eaf1ff; color: var(--survei-blue);
+    display: flex; align-items: center; justify-content: center;
     font-size: 1.15rem;
   }
-  .survei-title {
-    margin: 0 0 0.15rem;
-    font-weight: 700;
-    color: #1f2937;
-  }
-  .survei-subtitle {
-    margin: 0;
-    font-size: 0.85rem;
-    color: #8a94a6;
-    line-height: 1.4;
-  }
+  .survei-title { margin: 0 0 0.15rem; font-weight: 700; color: #1f2937; }
+  .survei-subtitle { margin: 0; font-size: 0.85rem; color: #8a94a6; line-height: 1.4; }
 
   /* ===== Fullscreen kamera ===== */
   .camera-fullscreen {
-    position: fixed;
-    inset: 0;
-    z-index: 1050;
+    position: fixed; inset: 0; z-index: 1050;
     background: #000;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
   }
 
-  /* Bar hitam atas (flip & tutup) */
   .camera-topbar {
     flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 0.7rem 1rem;
     padding-top: calc(0.7rem + env(safe-area-inset-top));
     background: #000;
   }
   .cam-icon-btn {
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.14);
-    color: #fff;
-    border: none;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(255,255,255,0.14); color: #fff; border: none;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.05rem;
     transition: background-color 0.15s ease;
   }
   .cam-icon-btn:hover { background: rgba(255,255,255,0.25); }
+  .cam-icon-btn:disabled { opacity: 0.4; }
 
   .camera-frame-wrap {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative; flex: 1; min-height: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
     background: #000;
   }
 
-  /* Ukuran kotak video diatur JS (fitBox) sesuai rasio 9:16 */
-  .video-box {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #111;
-  }
-  .video-box video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+  /* Ukuran kotak diatur JS (fitBox) sesuai rasio 9:16 */
+  .video-box { position: relative; width: 100%; height: 100%; overflow: hidden; background: #111; }
+  .video-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-  .preview-canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
+  .preview-canvas { width: 100%; height: 100%; object-fit: contain; display: block; }
 
   /* ===== Watermark LIVE ===== */
   .live-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
   }
-  .lo-top {
-    display: flex;
-    justify-content: flex-end;
-    padding: 1rem;
-  }
+  .lo-top { display: flex; justify-content: flex-end; padding: 1rem; }
   .lo-logo { width: 22%; max-width: 110px; height: auto; }
 
   .lo-bottom {
@@ -236,20 +178,12 @@
     color: #fff;
     padding: 1.4rem 1.1rem 1.1rem;
   }
-  .lo-kode {
-    font-weight: 700;
-    font-size: 0.8rem;
-    letter-spacing: 0.3px;
-  }
+  .lo-kode { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.3px; }
   .lo-divider-h { border-top: 1px solid rgba(255,255,255,0.35); margin: 0.4rem 0 0.6rem; }
   .lo-address {
-    font-size: 0.85rem;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 0.6rem;
+    font-size: 0.85rem; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; margin-bottom: 0.6rem;
     color: rgba(255,255,255,0.92);
   }
   .lo-time-row { display: flex; align-items: center; gap: 0.7rem; }
@@ -263,70 +197,38 @@
     flex: 0 0 auto;
     padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
     background: #000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
   }
-  .preview-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.6rem;
-  }
-  .preview-controls .btn {
-    flex: 1 1 auto;
-    min-width: 100px;
-    border-radius: 999px;
-    font-weight: 600;
-  }
+  .preview-controls { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+  .preview-controls .btn { flex: 1 1 auto; min-width: 100px; border-radius: 999px; font-weight: 600; }
 
-  /* Tombol shutter ala kamera HP */
   .shutter-btn {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    border: 4px solid #fff;
-    background: transparent;
-    padding: 4px;
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 4px solid #fff; background: transparent; padding: 4px;
     display: flex; align-items: center; justify-content: center;
     transition: transform 0.1s ease, opacity 0.15s ease;
   }
   .shutter-btn:active { transform: scale(0.92); }
   .shutter-btn:disabled { opacity: 0.4; }
-  .shutter-inner {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: #fff;
-    display: block;
-  }
+  .shutter-inner { width: 100%; height: 100%; border-radius: 50%; background: #fff; display: block; }
   .shutter-label { color: #fff; font-size: 0.8rem; }
 
   .btn-capture {
     background: linear-gradient(135deg, var(--survei-blue), var(--survei-blue-dark));
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 0.7rem 1.4rem;
-    font-weight: 600;
+    color: #fff; border: none; border-radius: 999px;
+    padding: 0.7rem 1.4rem; font-weight: 600;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     transition: opacity 0.15s ease, box-shadow 0.15s ease;
   }
   .btn-capture:hover { color: #fff; opacity: 0.92; }
   .btn-capture:disabled { opacity: 0.5; box-shadow: none; }
-  .btn-capture-lg {
-    padding: 0.85rem 1.6rem;
-    font-size: 0.95rem;
-  }
+  .btn-capture-lg { padding: 0.85rem 1.6rem; font-size: 0.95rem; }
 
-  /* ===== Alert izin ===== */
+  /* ===== Alert ===== */
   .perm-alert {
-    position: absolute;
-    left: 1rem; right: 1rem; top: 50%;
-    transform: translateY(-50%);
-    z-index: 4;
-    display: flex;
-    gap: 0.9rem;
-    align-items: flex-start;
+    position: absolute; left: 1rem; right: 1rem; top: 50%;
+    transform: translateY(-50%); z-index: 4;
+    display: flex; gap: 0.9rem; align-items: flex-start;
     background: linear-gradient(135deg, #fff8e6, #fff1cc);
     border: 1px solid #ffe1a1;
     border-radius: var(--survei-radius-md);
@@ -334,14 +236,10 @@
     box-shadow: 0 4px 14px rgba(255, 193, 7, 0.15);
   }
   .perm-alert-icon {
-    flex-shrink: 0;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: #ffc107;
-    color: #fff;
+    flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+    background: #ffc107; color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
-    box-shadow: 0 3px 8px rgba(255,193,7,0.4);
+    font-size: 1.1rem; box-shadow: 0 3px 8px rgba(255,193,7,0.4);
   }
   .perm-alert-title { font-weight: 700; color: #8a5a00; margin-bottom: 0.25rem; font-size: 0.92rem; }
   .perm-alert-text { font-size: 0.83rem; color: #8a6a1f; margin-bottom: 0.6rem; line-height: 1.4; }
@@ -363,8 +261,7 @@
 {% block extra_js %}
 <script>
 (function () {
-  // Rasio frame kamera. 9:16 = seperti mode 9:16 di kamera bawaan HP.
-  // Kalau mau 3:4, ganti jadi RATIO_W = 3, RATIO_H = 4.
+  // Rasio tampilan & hasil foto. 9:16 = seperti mode 9:16 kamera bawaan HP.
   const RATIO_W = 9;
   const RATIO_H = 16;
 
@@ -383,6 +280,8 @@
   const cameraStage = document.getElementById('cameraStage');
   const previewStage = document.getElementById('previewStage');
   const permissionAlert = document.getElementById('permissionAlert');
+  const permTitle = document.getElementById('permTitle');
+  const permText = document.getElementById('permText');
   const retryBtn = document.getElementById('retryPermissionBtn');
 
   const liveOverlay = document.getElementById('liveOverlay');
@@ -406,8 +305,11 @@
   let addressTimer = null;
   let watchId = null;
   let facing = 'environment'; // 'environment' = belakang, 'user' = depan
+  let switching = false;      // cegah flip/buka kamera dobel
 
-  // ===== Atur ukuran kotak video: selebar layar dengan rasio tetap =====
+  const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+  // ===== Kotak video selebar layar dengan rasio tetap =====
   function fitBox() {
     const wrap = videoBox.parentElement;
     const availW = wrap.clientWidth;
@@ -415,7 +317,7 @@
     if (!availW || !availH) return;
     let w = availW;
     let h = w * RATIO_H / RATIO_W;
-    if (h > availH) {          // kalau kepanjangan, sesuaikan dengan tinggi
+    if (h > availH) {
       h = availH;
       w = h * RATIO_W / RATIO_H;
     }
@@ -431,6 +333,27 @@
     return out;
   }
 
+  // ===== Pesan error =====
+  function showAlert(title, text) {
+    permTitle.textContent = title;
+    permText.textContent = text;
+    permissionAlert.classList.remove('d-none');
+    captureBtn.disabled = true;
+  }
+  function showCameraError(err) {
+    const name = err && err.name;
+    if (name === 'NotAllowedError' || name === 'SecurityError') {
+      showAlert('Kamera belum diizinkan',
+        'Izinkan kamera lewat pop-up browser atau ikon gembok di address bar, lalu klik "Coba Lagi".');
+    } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+      showAlert('Kamera tidak ditemukan',
+        'Kamera yang dipilih tidak tersedia di perangkat ini. Coba balik kamera atau klik "Coba Lagi".');
+    } else {
+      showAlert('Kamera gagal dibuka',
+        'Kamera mungkin sedang dipakai aplikasi lain. Tutup aplikasi kamera lain lalu klik "Coba Lagi".');
+    }
+  }
+
   // ===== Buka / tutup =====
   openCameraBtn.addEventListener('click', function () {
     cameraStage.classList.remove('d-none');
@@ -442,9 +365,14 @@
   closeCameraBtn.addEventListener('click', stopEverythingAndClose);
   closePreviewBtn.addEventListener('click', stopEverythingAndClose);
 
-  function stopEverythingAndClose() {
+  function stopStream() {
     if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
     currentStream = null;
+    video.srcObject = null;
+  }
+
+  function stopEverythingAndClose() {
+    stopStream();
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     watchId = null;
     clearInterval(clockTimer);
@@ -464,69 +392,104 @@
     startLocation();
   }
 
-  function startStream() {
-    if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
-    captureBtn.disabled = true;
-
-    // Minta stream langsung berrasio 9:16 (seperti mode 9:16 kamera HP),
-    // jadi tidak perlu di-zoom/crop paksa.
-    const constraints = {
-      video: {
-        facingMode: { ideal: facing },
-        width:  { ideal: 1080 },
-        height: { ideal: 1920 },
-        aspectRatio: { ideal: RATIO_W / RATIO_H }
-      },
-      audio: false
-    };
-
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then(function (stream) {
-        currentStream = stream;
-        video.srcObject = stream;
-
-        // Zoom minimum (1x) kalau didukung
-        try {
-          const track = stream.getVideoTracks()[0];
-          const caps = track.getCapabilities ? track.getCapabilities() : {};
-          if (caps.zoom) {
-            track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }).catch(function () {});
-          }
-        } catch (e) { /* abaikan */ }
-
-        captureBtn.disabled = false;
-        liveOverlay.classList.remove('d-none');
-        startLiveClock();
-      })
-      .catch(showPermissionError);
+  async function openStream(mode) {
+    // Resolusi tinggi TANPA aspectRatio -> sensor dipakai utuh (tidak ter-zoom).
+    // Rasio 9:16 diatur saat ditampilkan, bukan saat meminta stream.
+    const attempts = [
+      { video: { facingMode: { ideal: mode }, width: { ideal: 4096 }, height: { ideal: 3072 } }, audio: false },
+      { video: { facingMode: { ideal: mode } }, audio: false },
+      { video: true, audio: false }
+    ];
+    let lastErr;
+    for (let i = 0; i < attempts.length; i++) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(attempts[i]);
+      } catch (e) {
+        lastErr = e;
+        if (e && e.name === 'NotAllowedError') throw e; // izin ditolak, tidak usah coba lagi
+        await sleep(250);
+      }
+    }
+    throw lastErr;
   }
 
+  async function startStream() {
+    if (switching) return;
+    switching = true;
+    captureBtn.disabled = true;
+    flipCameraBtn.disabled = true;
+
+    // Matikan kamera lama dulu & beri jeda supaya benar-benar lepas
+    stopStream();
+    await sleep(300);
+
+    try {
+      const stream = await openStream(facing);
+      currentStream = stream;
+      video.srcObject = stream;
+      permissionAlert.classList.add('d-none');
+
+      // Zoom minimum (1x) kalau didukung
+      try {
+        const track = stream.getVideoTracks()[0];
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.zoom) {
+          await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }).catch(function () {});
+        }
+      } catch (e) { /* abaikan */ }
+
+      try { await video.play(); } catch (e) { /* autoplay sudah menangani */ }
+
+      captureBtn.disabled = false;
+      liveOverlay.classList.remove('d-none');
+      startLiveClock();
+    } catch (err) {
+      showCameraError(err);
+    } finally {
+      switching = false;
+      flipCameraBtn.disabled = false;
+    }
+  }
+
+  // ===== Lokasi (error lokasi dipisah dari error kamera) =====
   function startLocation() {
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     clearInterval(addressTimer);
 
-    if ('geolocation' in navigator) {
-      watchId = navigator.geolocation.watchPosition(
-        function (pos) { lastCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
-        showPermissionError,
-        { enableHighAccuracy: true }
-      );
-      pollAddress();
-      addressTimer = setInterval(pollAddress, 20000);
-    } else {
-      showPermissionError();
+    if (!('geolocation' in navigator)) {
+      loAddress.textContent = 'Lokasi tidak didukung browser ini';
+      return;
     }
+    watchId = navigator.geolocation.watchPosition(
+      function (pos) { lastCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; },
+      function (err) {
+        if (err && err.code === 1) { // PERMISSION_DENIED
+          showAlert('Lokasi belum diizinkan',
+            'Izinkan akses lokasi lewat pengaturan situs (ikon gembok di address bar), lalu klik "Coba Lagi".');
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 10000 }
+    );
+    pollAddress();
+    addressTimer = setInterval(pollAddress, 20000);
   }
 
   // Bolak-balik kamera depan / belakang
-  flipCameraBtn.addEventListener('click', function () {
+  flipCameraBtn.addEventListener('click', async function () {
+    if (switching) return;
+    const before = facing;
     facing = (facing === 'environment') ? 'user' : 'environment';
-    startStream();
+    await startStream();
+    // Kalau gagal total, kembali ke kamera sebelumnya
+    if (!currentStream) {
+      facing = before;
+      await startStream();
+    }
   });
 
   async function pollAddress() {
     if (!lastCoords) {
-      setTimeout(pollAddress, 1500); // koordinat belum ada, coba lagi
+      setTimeout(pollAddress, 1500);
       return;
     }
     const alamat = await reverseGeocode(lastCoords.lat, lastCoords.lng);
@@ -547,12 +510,10 @@
     loDay.textContent = now.toLocaleDateString('id-ID', { weekday: 'long' });
   }
 
-  function showPermissionError() {
-    permissionAlert.classList.remove('d-none');
-    captureBtn.disabled = true;
-  }
-
-  retryBtn.addEventListener('click', startCamera);
+  retryBtn.addEventListener('click', function () {
+    switching = false;
+    startCamera();
+  });
 
   // ===== Alamat =====
   function buildDetailedAddress(data) {
@@ -591,7 +552,7 @@
         '&zoom=18&addressdetails=1&namedetails=1&accept-language=id'
       );
       const data = await res.json();
-      return buildDetailedAddress(data);
+      return buildDetailedAddress(data) || (lat.toFixed(6) + ', ' + lng.toFixed(6));
     } catch (e) {
       return lat.toFixed(6) + ', ' + lng.toFixed(6);
     }
@@ -627,8 +588,7 @@
     const alamat = lastAddress || await reverseGeocode(lastCoords.lat, lastCoords.lng);
     const kodeFoto = currentKode || generateKodeFoto();
 
-    // Crop frame video persis seperti yang terlihat di kotak (object-fit: cover).
-    // Kalau stream sudah 9:16, tidak ada yang terpotong.
+    // Crop persis seperti yang terlihat di kotak (object-fit: cover)
     const vw = video.videoWidth, vh = video.videoHeight;
     const boxW = video.clientWidth, boxH = video.clientHeight;
     const scale = Math.max(boxW / vw, boxH / vh);
@@ -730,8 +690,7 @@
   function finishCapture() {
     cameraStage.classList.add('d-none');
     previewStage.classList.remove('d-none');
-    if (currentStream) currentStream.getTracks().forEach(function (t) { t.stop(); });
-    currentStream = null;
+    stopStream();
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     watchId = null;
     clearInterval(clockTimer);
@@ -760,7 +719,7 @@
         await navigator.share({ files: [file] });
         return;
       } catch (e) {
-        if (e.name === 'AbortError') return; // user batal
+        if (e.name === 'AbortError') return;
       }
     }
 
