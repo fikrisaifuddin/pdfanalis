@@ -326,7 +326,7 @@
     if (satuBaris.length <= PREVIEW_MAX_LEN) return satuBaris;
     return satuBaris.slice(0, PREVIEW_MAX_LEN).trimEnd() + " ...";
   }
-
+ 
   function buatWaLink(nomor, pesan) {
     return "https://wa.me/" + nomor + "?text=" + encodeURIComponent(pesan);
   }
