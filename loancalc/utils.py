@@ -980,6 +980,9 @@ def extract_slik_data(
     }
     return df, meta
 
+DEFAULT_BATAS_GAJI_TUNAI = 10_000_000.0
+DEFAULT_PERSEN_DIAKUI_TUNAI = 80.0
+
 def calculate_credit_analysis(
     status_pekerjaan: str = "tetap",
     penghasilan_bersih: float = 0.0,
@@ -991,6 +994,9 @@ def calculate_credit_analysis(
     total_monthly_slik: float = 0.0,
     problem_facilities_count: int = 0,
     persentase_custom: float = 0.0,
+    jenis_gaji: str = "payroll",
+    gaji_maks_tunai: float = 0.0,
+    persen_diakui_tunai: float = DEFAULT_PERSEN_DIAKUI_TUNAI,
 ) -> dict:
     status_clean = str(status_pekerjaan).lower()
     if status_clean == "kontrak":
@@ -1006,10 +1012,22 @@ def calculate_credit_analysis(
         persentase_gaji = 55.0
         label_pekerjaan = "Pegawai Tetap (55%)"
 
-    # 1. Gaji yang diakui = Penghasilan * Persentase (55% / 35%) - Hutang SLIK
-    gaji_diakui_kotor = penghasilan_bersih * (persentase_gaji / 100.0)
-    gaji_diakui = gaji_diakui_kotor - total_monthly_slik
+    # 1. Dasar penghasilan: payroll = seluruh gaji; tunai = min(gaji, maks) * % diakui
+    jenis_gaji_clean = str(jenis_gaji).lower()
+    gaji_maks_efektif = 0.0
+    persen_tunai = min(max(float(persen_diakui_tunai or 0.0), 0.0), 100.0)
 
+    if jenis_gaji_clean == "tunai":
+        batas = gaji_maks_tunai if gaji_maks_tunai and gaji_maks_tunai > 0 else DEFAULT_BATAS_GAJI_TUNAI
+        gaji_maks_efektif = min(penghasilan_bersih, batas)
+        penghasilan_dasar = gaji_maks_efektif * (persen_tunai / 100.0)
+    else:
+        jenis_gaji_clean = "payroll"
+        penghasilan_dasar = penghasilan_bersih
+
+    # Gaji yang diakui = Dasar * Persentase status (55% / 35%) - Hutang SLIK
+    gaji_diakui_kotor = penghasilan_dasar * (persentase_gaji / 100.0)
+    gaji_diakui = gaji_diakui_kotor - total_monthly_slik
     # Kapasitas bulanan = Gaji Diakui (sudah net hutang), dipertahankan untuk kompatibilitas
     kapasitas_bulanan = gaji_diakui
 
@@ -1117,6 +1135,10 @@ def calculate_credit_analysis(
         "selisih_angsuran": selisih_angsuran,
         "ltv_ratio": ltv_ratio,
         "dp_percent": dp_percent,
+        "jenis_gaji": jenis_gaji_clean,
+        "gaji_maks_tunai": gaji_maks_efektif,
+        "persen_diakui_tunai": persen_tunai,
+        "penghasilan_dasar": penghasilan_dasar,
         "karakter": {
             "status": karakter_status,
             "badge": karakter_badge,
