@@ -896,13 +896,13 @@ document.addEventListener("DOMContentLoaded", function () {
                   <span class="label">Maks. Plafon KPR:</span>
                   <span class="value">Rp {{ result.analisis_kredit.maks_plafon_kpr|floatformat:0|intcomma|default:"0" }}</span>
                 </div>
-                <div class="kredit-row divider">
-                  <span class="label">Angsuran KPR:</span>
-                  <span class="value">Rp {{ result.analisis_kredit.angsuran_kpr_baru|floatformat:0|intcomma|default:"0" }}</span>
-                </div>
                 <div class="kredit-row">
                   <span class="label">Batas Kapasitas:</span>
                   <span class="value">Rp {{ result.analisis_kredit.batas_kapasitas|floatformat:0|intcomma|default:"0" }}</span>
+                </div>
+                <div class="kredit-row divider">
+                  <span class="label">Angsuran KPR:</span>
+                  <span class="value">Rp {{ result.analisis_kredit.angsuran_kpr_baru|floatformat:0|intcomma|default:"0" }}</span>
                 </div>
               </div>
             </div>
@@ -1302,40 +1302,20 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
       }
+      skipCleanup = true;
       if (submitBtn) submitBtn.disabled = true;
       if (spinner) spinner.classList.remove("d-none");
       if (btnText) btnText.textContent = "Memproses...";
     });
   }
 
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      if (pdfInput && pdfInput.files.length > 0) {
-        const fname = pdfInput.files[0].name.toLowerCase();
-        if (!fname.endsWith(".pdf")) {
-          e.preventDefault();
-          alert("Hanya file .pdf yang diperbolehkan.");
-          return;
-        }
-      }
-      skipCleanup = true;   
-      if (submitBtn) submitBtn.disabled = true;
-      if (spinner) spinner.classList.remove("d-none");
-      if (btnText) btnText.textContent = "Memproses...";
-    });
-  }
-
-  window.addEventListener("pagehide", function () {
-    if (skipCleanup) return;
+  window.addEventListener("pagehide", function (e) {
+    if (skipCleanup || e.persisted) return;
     const tokenEl = document.querySelector("[name=csrfmiddlewaretoken]");
     const fd = new FormData();
     if (tokenEl) fd.append("csrfmiddlewaretoken", tokenEl.value);
     navigator.sendBeacon("{% url 'cleanup_pdf' %}", fd);
   });
-
-  if (window.location.search.includes("r=1")) {
-    history.replaceState(null, "", window.location.pathname);
-  }
 
 </script>
 {% endblock %}

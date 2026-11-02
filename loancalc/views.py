@@ -21,15 +21,20 @@ from django.template.loader import render_to_string
 logger = logging.getLogger(__name__)
 
 CACHE_DIR = os.path.join(tempfile.gettempdir(), "slik_pdf_cache")
-CACHE_MAX_AGE_SECONDS = 2 * 60 * 60  # sapu file yatim (browser crash, dll.)
+CACHE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
 
-def _purge_expired_cache() -> None:
+def _purge_expired_cache(keep_path: str = None) -> None:
+    if not CACHE_MAX_AGE_SECONDS:
+        return
     try:
         os.makedirs(CACHE_DIR, exist_ok=True)
         now = time.time()
+        keep = os.path.abspath(keep_path) if keep_path else None
         for fname in os.listdir(CACHE_DIR):
             fpath = os.path.join(CACHE_DIR, fname)
+            if keep and os.path.abspath(fpath) == keep:
+                continue  # jangan pernah hapus file milik session yang sedang aktif
             try:
                 if os.path.isfile(fpath) and now - os.path.getmtime(fpath) > CACHE_MAX_AGE_SECONDS:
                     os.remove(fpath)
@@ -134,8 +139,9 @@ def loan_calc_view(request: HttpRequest) -> HttpResponse:
     error = None
     message = None
 
-    _purge_expired_cache()
+    _purge_expired_cache(keep_path=request.session.get("cached_pdf_path"))
 
+    
     if request.method == "GET":
         state = request.session.pop("loan_view_state", None)   # pop = sekali pakai
         if request.GET.get("r") == "1" and state:
