@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
+
+{% block title %}Kamera Timemark{% endblock %}
+
 {% block content %}
 
 <div class="survei-card">
@@ -7,7 +10,7 @@
   <div class="survei-header">
     <div class="survei-header-icon"><i class="bi bi-camera-fill"></i></div>
     <div>
-      <h4 class="survei-title">Bukti Survei</h4>
+      <h4 class="survei-title">Kamera Timemark</h4>
       <p class="survei-subtitle">Ambil foto lokasi survei lengkap dengan watermark waktu &amp; lokasi otomatis.</p>
     </div>
   </div>
@@ -712,7 +715,7 @@
   // ===== Simpan ke Galeri (menu Share HP), cadangan: unduh biasa =====
   downloadBtn.addEventListener('click', async function () {
     if (!lastBlob) return;
-    const file = new File([lastBlob], 'bukti_survei_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+    const file = new File([lastBlob], 'timemark_' + Date.now() + '.jpg', { type: 'image/jpeg' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
