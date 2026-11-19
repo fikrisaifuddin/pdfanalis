@@ -83,6 +83,17 @@ def calculate_loan_details(P: float, annual_rate: float, n_months: int) -> dict:
         "Mortgage Constant": mortgage_constant,
     }
 
+def calculate_max_loan_from_payment(monthly_payment: float, annual_rate: float, n_months: int) -> float:
+
+    if monthly_payment <= 0 or n_months <= 0:
+        return 0.0
+    r = annual_rate / 12 / 100
+    if r == 0:
+        return monthly_payment * n_months
+    try:
+        return monthly_payment * (1 - (1 + r) ** (-n_months)) / r
+    except Exception:
+        return 0.0
 
 def format_name_for_display(raw_name: str) -> str:
     if not raw_name or not isinstance(raw_name, str):
@@ -969,6 +980,9 @@ def extract_slik_data(
     }
     return df, meta
 
+DEFAULT_BATAS_GAJI_TUNAI = 10_000_000.0
+DEFAULT_PERSEN_DIAKUI_TUNAI = 80.0
+
 def calculate_credit_analysis(
     status_pekerjaan: str = "tetap",
     penghasilan_bersih: float = 0.0,
@@ -980,6 +994,9 @@ def calculate_credit_analysis(
     total_monthly_slik: float = 0.0,
     problem_facilities_count: int = 0,
     persentase_custom: float = 0.0,
+    jenis_gaji: str = "payroll",
+    gaji_maks_tunai: float = 0.0,
+    persen_diakui_tunai: float = DEFAULT_PERSEN_DIAKUI_TUNAI,
 ) -> dict:
     status_clean = str(status_pekerjaan).lower()
     if status_clean == "kontrak":
@@ -995,30 +1012,42 @@ def calculate_credit_analysis(
         persentase_gaji = 55.0
         label_pekerjaan = "Pegawai Tetap (55%)"
 
-    # 1. Gaji yang diakui = Penghasilan * Persentase (55% / 35%) - Hutang SLIK
-    gaji_diakui_kotor = penghasilan_bersih * (persentase_gaji / 100.0)
-    gaji_diakui = gaji_diakui_kotor - total_monthly_slik
+    # 1. Dasar penghasilan: payroll = seluruh gaji; tunai = min(gaji, maks) * % diakui
+    jenis_gaji_clean = str(jenis_gaji).lower()
+    gaji_maks_efektif = 0.0
+    persen_tunai = min(max(float(persen_diakui_tunai or 0.0), 0.0), 100.0)
 
+    if jenis_gaji_clean == "tunai":
+        batas = gaji_maks_tunai if gaji_maks_tunai and gaji_maks_tunai > 0 else DEFAULT_BATAS_GAJI_TUNAI
+        gaji_maks_efektif = min(penghasilan_bersih, batas)
+        penghasilan_dasar = gaji_maks_efektif * (persen_tunai / 100.0)
+    else:
+        jenis_gaji_clean = "payroll"
+        penghasilan_dasar = penghasilan_bersih
+
+    # Gaji yang diakui = Dasar * Persentase status (55% / 35%) - Hutang SLIK
+    gaji_diakui_kotor = penghasilan_dasar * (persentase_gaji / 100.0)
+    gaji_diakui = gaji_diakui_kotor - total_monthly_slik
     # Kapasitas bulanan = Gaji Diakui (sudah net hutang), dipertahankan untuk kompatibilitas
     kapasitas_bulanan = gaji_diakui
 
     # Kapasitas Tahunan = Gaji Diakui * 12
     kapasitas_tahunan = gaji_diakui * 12.0
 
-    # 3. Maksimal Plafon KPR = Kapasitas Tahunan / Bunga Floating
+    # 3. Maksimal Plafon KPR = PV(bunga floating, tenor, kapasitas bulanan)
     bunga_floating_val = float(bunga_floating) if bunga_floating and float(bunga_floating) > 0 else 12.0
-    rate_floating_decimal = bunga_floating_val / 100.0
+    n_months = int(tenor_tahun * 12) if tenor_tahun and tenor_tahun > 0 else 180
 
-    if kapasitas_tahunan > 0 and rate_floating_decimal > 0:
-        maks_plafon_kpr = kapasitas_tahunan / rate_floating_decimal
-    else:
-        maks_plafon_kpr = 0.0
+    maks_plafon_kpr = calculate_max_loan_from_payment(
+        monthly_payment=kapasitas_bulanan,
+        annual_rate=bunga_floating_val,
+        n_months=n_months,
+    )
 
     # Nilai KPR Diminta (Harga Jual - Uang Muka)
     nilai_kpr = max(0.0, harga_jual - uang_muka)
 
     # Angsuran KPR Baru (Metode Anuitas)
-    n_months = int(tenor_tahun * 12) if tenor_tahun and tenor_tahun > 0 else 180
     loan_calc = calculate_loan_details(nilai_kpr, suku_bunga, n_months)
     angsuran_kpr_baru = loan_calc.get("Monthly Payment", 0.0)
 
@@ -1036,8 +1065,7 @@ def calculate_credit_analysis(
         karakter_desc = f"Terdapat {problem_facilities_count} fasilitas kredit berstatus tunggakan/kualitas bermasalah."
 
     # --- Evaluasi 2: Kapasitas ---
-    # Langkah 4 sesuai contoh: Batas Kapasitas = Gaji Diakui x 70%
-    batas_kapasitas = gaji_diakui * 0.70
+    batas_kapasitas = kapasitas_bulanan
 
     selisih_plafon = maks_plafon_kpr - nilai_kpr
     selisih_angsuran = batas_kapasitas - angsuran_kpr_baru
@@ -1049,17 +1077,17 @@ def calculate_credit_analysis(
     elif selisih_plafon >= 0 and selisih_angsuran >= 0:
         kapasitas_status = "MEMENUHI (LAYAK)"
         kapasitas_badge = "success"
-        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) masih dalam batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
+        kapasitas_desc = f"Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) masih dalam batas kapasitas bulanan (Rp {batas_kapasitas:,.0f})."
     else:
         kapasitas_status = "DEFISIT (TIDAK MEMENUHI)"
         kapasitas_badge = "danger"
 
         if selisih_plafon < 0 and selisih_angsuran < 0:
-            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
+            kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f}) dan angsuran (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas bulanan (Rp {batas_kapasitas:,.0f})."
         elif selisih_plafon < 0:
             kapasitas_desc = f"Nilai KPR yang diminta (Rp {nilai_kpr:,.0f}) melebihi Maksimal Plafon KPR (Rp {maks_plafon_kpr:,.0f})."
         else:
-            kapasitas_desc = f"Estimasi angsuran bulanan (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas 70% (Rp {batas_kapasitas:,.0f})."
+            kapasitas_desc = f"Estimasi angsuran bulanan (Rp {angsuran_kpr_baru:,.0f}) melebihi batas kapasitas bulanan (Rp {batas_kapasitas:,.0f})."
 
     # --- Evaluasi 3: Kolateral ---
     if harga_jual <= 0:
@@ -1107,6 +1135,10 @@ def calculate_credit_analysis(
         "selisih_angsuran": selisih_angsuran,
         "ltv_ratio": ltv_ratio,
         "dp_percent": dp_percent,
+        "jenis_gaji": jenis_gaji_clean,
+        "gaji_maks_tunai": gaji_maks_efektif,
+        "persen_diakui_tunai": persen_tunai,
+        "penghasilan_dasar": penghasilan_dasar,
         "karakter": {
             "status": karakter_status,
             "badge": karakter_badge,
