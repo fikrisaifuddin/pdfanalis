@@ -307,7 +307,7 @@
   let clockTimer = null;
   let addressTimer = null;
   let watchId = null;
-  let facing = 'environment'; // 'environment' = belakang, 'user' = depan
+  let facing = localStorage.getItem('pref_facing') || 'environment'; // 'environment' = belakang, 'user' = depan
   let switching = false;      // cegah flip/buka kamera dobel
 
   const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
@@ -698,7 +698,7 @@
     watchId = null;
     clearInterval(clockTimer);
     clearInterval(addressTimer);
-    canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', 0.92);
+    canvas.toBlob(function (blob) { lastBlob = blob; }, 'image/jpeg', parseFloat(localStorage.getItem('pref_quality')) || 0.92);
     captureBtn.disabled = false;
     captureBtnText.classList.add('d-none');
   }
