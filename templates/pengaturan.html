@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Pengaturan{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hint-muted { font-size: 0.75rem; color: #9ca3af; margin-top: 0.3rem; }
+  .card.border-0.shadow-sm.rounded-4 { overflow: hidden; }
+  #saveBtn { min-width: 160px; padding-top: 0.55rem; padding-bottom: 0.55rem; }
+  @media (max-width: 576px) {
+    #saveBtn, #resetBtn { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <!-- Header sama seperti halaman lain -->
+  <div class="card-header p-4 d-flex flex-wrap justify-content-between align-items-center gap-3 rounded-top-4"
+       style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important; background-color: #0d6efd !important; color: #ffffff !important;">
+    <div>
+      <h3 class="mb-1 fw-bold" style="color: #ffffff !important; margin: 0;">Pengaturan</h3>
+      <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.85) !important; margin: 0;">Preferensi tampilan dan kamera, tersimpan di browser perangkat ini</p>
+    </div>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light-subtle h-100">
+          <label for="prefFacing" class="form-label fw-bold text-secondary">Kamera Timemark Bawaan</label>
+          <select id="prefFacing" class="form-select form-select-sm">
+            <option value="environment">Kamera belakang</option>
+            <option value="user">Kamera depan</option>
+          </select>
+          <div class="form-text hint-muted">Kamera yang dipakai saat pertama kali dibuka.</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light-subtle h-100">
+          <label for="prefQuality" class="form-label fw-bold text-secondary">Kualitas Foto</label>
+          <select id="prefQuality" class="form-select form-select-sm">
+            <option value="0.7">Hemat (70%)</option>
+            <option value="0.92">Standar (92%)</option>
+            <option value="1">Maksimal (100%)</option>
+          </select>
+          <div class="form-text hint-muted">Makin tinggi, makin besar ukuran file.</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-3 border rounded-3 bg-light-subtle h-100">
+          <label for="prefSidebar" class="form-label fw-bold text-secondary">Sidebar Saat Dibuka</label>
+          <select id="prefSidebar" class="form-select form-select-sm">
+            <option value="0">Terbuka</option>
+            <option value="1">Menciut (ikon saja)</option>
+          </select>
+          <div class="form-text hint-muted">Berlaku di tampilan desktop.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <button type="button" id="saveBtn" class="btn btn-primary fw-semibold shadow-sm">Simpan</button>
+      <button type="button" id="resetBtn" class="btn btn-outline-primary fw-semibold shadow-sm">Kembalikan ke Awal</button>
+      <span id="saveInfo" class="small text-muted ms-1 d-none">
+        <i class="bi bi-check-circle-fill me-1"></i>Pengaturan tersimpan.
+      </span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const DEFAULTS = { pref_facing: 'environment', pref_quality: '0.92', sidebarCollapsed: '0' };
+  const map = { pref_facing: 'prefFacing', pref_quality: 'prefQuality', sidebarCollapsed: 'prefSidebar' };
+  const info = document.getElementById('saveInfo');
+
+  function load() {
+    Object.keys(map).forEach(function (key) {
+      document.getElementById(map[key]).value = localStorage.getItem(key) || DEFAULTS[key];
+    });
+  }
+
+  function flash() {
+    info.classList.remove('d-none');
+    setTimeout(function () { info.classList.add('d-none'); }, 2000);
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', function () {
+    Object.keys(map).forEach(function (key) {
+      localStorage.setItem(key, document.getElementById(map[key]).value);
+    });
+    document.body.classList.toggle('sidebar-collapsed', localStorage.getItem('sidebarCollapsed') === '1');
+    flash();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    Object.keys(map).forEach(function (key) { localStorage.removeItem(key); });
+    load();
+    document.body.classList.remove('sidebar-collapsed');
+    flash();
+  });
+
+  load();
+})();
+</script>
+{% endblock %}
